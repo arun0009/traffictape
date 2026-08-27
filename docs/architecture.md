@@ -26,7 +26,7 @@ TrafficTape records real HTTP behavior into a portable corpus. Spring Boot is an
        Karate   WireMock
 ```
 
-## Capture path (Spring v0.1)
+## Capture path (Spring v0.2)
 
 ```text
 inbound Filter / RestClient, RestTemplate, WebClient, OkHttp interceptors
