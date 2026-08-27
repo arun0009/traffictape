@@ -1,6 +1,6 @@
 # Configuration
 
-Prefix: `traffictape`. Disabled unless `enabled: true`.
+Requires Java 17+ and Spring Boot 3.x on Spring MVC. Prefix: `traffictape`. Disabled unless `enabled: true`.
 
 ```yaml
 traffictape:
@@ -33,6 +33,7 @@ traffictape:
   destinations:
     "inventory.internal:8080": inventory-service
   capture:
+    text-bodies: true      # false = omit XML, form-urlencoded, and plain text bodies
     include:
       methods: [GET, POST, PUT, PATCH, DELETE]
       headers: []          # empty = all except denylist
@@ -42,12 +43,14 @@ traffictape:
       content-types: [multipart/form-data, application/octet-stream]
       destinations: []
   redaction:
-    enabled: true
+    enabled: true          # false disables all redaction and logs a WARN
     headers: [Authorization, Cookie, Set-Cookie, Proxy-Authorization, X-Api-Key]
     json-fields: [password, token, accessToken, refreshToken, secret, clientSecret, ssn, creditCard]
 ```
 
 Safe default: **omit** rather than capture. Tighten `include.headers` / `include.json-fields` in a 70-service estate if you want an allow-list.
+
+`redaction.json-fields` is applied to JSON bodies, XML leaf elements, and form-urlencoded pairs. See [redaction](redaction.md) for what each format covers and what it does not.
 
 `max-examples-per-scenario` stops bodies per scenario. `plateau-after` (default 6h) sets `captureReady` when no new unique scenario appears. Later new scenarios still get their own N.
 

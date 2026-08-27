@@ -42,6 +42,7 @@ See [docs/architecture.md](docs/architecture.md).
 
 ## Pull requests
 
-- Java 21, Spring Boot 3.4
+- Java 17 baseline. Do not use language or API features newer than 17; CI builds on 17 and 21
+- Spring Boot 3.x. Anything requiring Boot 3.2+ (for example `RestClient`) goes behind `@ConditionalOnClass`
 - `mvn test` must pass
 - Do not add Kafka, Redis, or a capture REST API

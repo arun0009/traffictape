@@ -1,6 +1,7 @@
 package io.traffictape.corpus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.traffictape.TrafficTapeVersion;
 import io.traffictape.statistics.StatisticsRegistry;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ public final class CorpusCompanionFiles {
         Map<String, Object> meta = new LinkedHashMap<>(template == null ? Map.of() : template);
         meta.put("schemaVersion", "1");
         meta.put("recorder", "traffictape");
-        meta.putIfAbsent("recorderVersion", "0.1.0-SNAPSHOT");
+        meta.putIfAbsent("recorderVersion", TrafficTapeVersion.get());
         meta.put("captureStart", captureStart.toString());
         meta.put("captureEnd", Instant.now().toString());
         if (snapshot != null) {

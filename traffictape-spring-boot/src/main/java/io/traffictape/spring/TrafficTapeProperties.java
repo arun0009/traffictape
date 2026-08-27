@@ -180,12 +180,26 @@ public class TrafficTapeProperties {
         private final Include include = new Include();
         private final Exclude exclude = new Exclude();
 
+        /**
+         * Capture non-JSON text bodies (XML, form-urlencoded, plain text). XML and form-urlencoded
+         * are field-redacted; plain text cannot be. Set to false to omit all of them.
+         */
+        private boolean textBodies = true;
+
         public Include getInclude() {
             return include;
         }
 
         public Exclude getExclude() {
             return exclude;
+        }
+
+        public boolean isTextBodies() {
+            return textBodies;
+        }
+
+        public void setTextBodies(boolean textBodies) {
+            this.textBodies = textBodies;
         }
     }
 

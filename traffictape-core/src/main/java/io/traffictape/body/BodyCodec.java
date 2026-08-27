@@ -16,11 +16,17 @@ public final class BodyCodec {
     private final ObjectMapper mapper;
     private final Redactor redactor;
     private final int maxBytes;
+    private final boolean captureTextBodies;
 
     public BodyCodec(ObjectMapper mapper, Redactor redactor, int maxBytes) {
+        this(mapper, redactor, maxBytes, true);
+    }
+
+    public BodyCodec(ObjectMapper mapper, Redactor redactor, int maxBytes, boolean captureTextBodies) {
         this.mapper = mapper;
         this.redactor = redactor;
         this.maxBytes = maxBytes;
+        this.captureTextBodies = captureTextBodies;
     }
 
     public BodyCapture decode(byte[] bytes, String contentType, boolean truncated, Long declaredSize) {
@@ -44,12 +50,17 @@ public final class BodyCodec {
                 JsonNode redacted = redactor.json(node);
                 return BodyCapture.json(redacted, over, size, slice.length);
             } catch (Exception e) {
-                String text = new String(slice, StandardCharsets.UTF_8);
-                return BodyCapture.text(text, over, size, slice.length);
+                // Unparseable JSON (usually truncated) cannot be field-redacted, and invalid JSON
+                // is useless as a mock body. Omit rather than store it raw.
+                return BodyCapture.omitted(size);
             }
         }
         if (isText(ct)) {
-            return BodyCapture.text(new String(slice, StandardCharsets.UTF_8), over, size, slice.length);
+            if (!captureTextBodies) {
+                return BodyCapture.omitted(size);
+            }
+            String text = redactor.text(new String(slice, StandardCharsets.UTF_8), ct);
+            return BodyCapture.text(text, over, size, slice.length);
         }
         return BodyCapture.omitted(size);
     }

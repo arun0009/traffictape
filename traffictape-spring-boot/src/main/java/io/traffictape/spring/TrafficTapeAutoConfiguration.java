@@ -1,5 +1,6 @@
 package io.traffictape.spring;
 
+import io.traffictape.TrafficTapeVersion;
 import io.traffictape.body.BodyCodec;
 import io.traffictape.capture.AsyncCaptureWorker;
 import io.traffictape.capture.CaptureEngine;
@@ -22,6 +23,8 @@ import io.traffictape.spring.outbound.restclient.RestClientCaptureConfiguration;
 import io.traffictape.spring.outbound.resttemplate.RestTemplateCaptureConfiguration;
 import io.traffictape.spring.outbound.webclient.WebClientCaptureConfiguration;
 import io.traffictape.statistics.StatisticsRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,6 +38,7 @@ import org.springframework.core.env.Environment;
 
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,18 +56,26 @@ import java.util.Map;
 })
 public class TrafficTapeAutoConfiguration {
 
+    private static final Logger log = LoggerFactory.getLogger(TrafficTapeAutoConfiguration.class);
+
     @Bean
     @ConditionalOnMissingBean
     CapturePolicy trafficTapeCapturePolicy(TrafficTapeProperties properties) {
         TrafficTapeProperties.Capture capture = properties.getCapture();
+        TrafficTapeProperties.Redaction redaction = properties.getRedaction();
+        boolean redact = redaction.isEnabled();
+        if (!redact) {
+            log.warn("TrafficTape redaction is DISABLED (traffictape.redaction.enabled=false). "
+                    + "Secrets, credentials, and cookies will be written to the corpus verbatim.");
+        }
         return CapturePolicy.builder()
                 .includeMethods(capture.getInclude().getMethods())
                 .excludeRoutes(capture.getExclude().getRoutes())
                 .excludeContentTypes(capture.getExclude().getContentTypes())
                 .excludeDestinations(capture.getExclude().getDestinations())
-                .excludeHeaders(properties.getRedaction().getHeaders())
+                .excludeHeaders(redact ? redaction.getHeaders() : List.of())
                 .includeHeaders(capture.getInclude().getHeaders())
-                .excludeJsonFields(properties.getRedaction().getJsonFields())
+                .excludeJsonFields(redact ? redaction.getJsonFields() : List.of())
                 .includeJsonFields(capture.getInclude().getJsonFields())
                 .build();
     }
@@ -95,7 +107,10 @@ public class TrafficTapeAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     BodyCodec trafficTapeBodyCodec(Redactor redactor, TrafficTapeProperties properties) {
-        return new BodyCodec(JsonSupport.mapper(), redactor, properties.getMaxRequestBytes());
+        // Adapters already cap request and response separately; this cap must not undercut either.
+        int maxBytes = Math.max(properties.getMaxRequestBytes(), properties.getMaxResponseBytes());
+        return new BodyCodec(JsonSupport.mapper(), redactor, maxBytes,
+                properties.getCapture().isTextBodies());
     }
 
     @Bean
@@ -153,7 +168,7 @@ public class TrafficTapeAutoConfiguration {
     @ConditionalOnMissingBean(CaptureSink.class)
     CaptureSink trafficTapeCaptureSink(TrafficTapeProperties properties, Environment environment) {
         Map<String, Object> meta = new LinkedHashMap<>();
-        meta.put("recorderVersion", "0.1.0-SNAPSHOT");
+        meta.put("recorderVersion", TrafficTapeVersion.get());
         meta.put("serviceName", environment.getProperty("spring.application.name", "application"));
         meta.put("environment", environment.getProperty("spring.profiles.active",
                 environment.getProperty("ENVIRONMENT", "")));

@@ -1,5 +1,6 @@
 package io.traffictape.sink.s3;
 
+import io.traffictape.TrafficTapeVersion;
 import io.traffictape.capture.CaptureSink;
 import io.traffictape.capture.ObjectStoreCaptureSink;
 import org.slf4j.Logger;
@@ -53,7 +54,7 @@ class TrafficTapeS3AutoConfiguration {
         String location = "s3://" + properties.getBucket() + "/" + prefix;
         log.info("TrafficTape corpus → {}", location);
         Map<String, Object> meta = new LinkedHashMap<>();
-        meta.put("recorderVersion", "0.1.0-SNAPSHOT");
+        meta.put("recorderVersion", TrafficTapeVersion.get());
         meta.put("serviceName", service);
         meta.put("environment", environment.getProperty("spring.profiles.active",
                 environment.getProperty("ENVIRONMENT", "")));

@@ -19,8 +19,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
+        # 17 is the supported baseline; 21 guards against forward-compatibility breaks.
         java-version:
+          - 17.x
           - 21.x
 
     steps:
@@ -35,6 +38,6 @@ jobs:
         run: ./mvnw -B package --file pom.xml
 
       - name: Update dependency graph
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.java-version == '17.x'
         continue-on-error: true
         uses: advanced-security/maven-dependency-submission-action@v5

@@ -4,8 +4,8 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.arun0009/traffictape-spring-boot?label=Maven%20Central)](https://central.sonatype.com/search?q=io.github.arun0009%20traffictape)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://adoptium.net)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://adoptium.net)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
 
 **Record real HTTP. Keep a corpus. Throw the recorder away.**
 
@@ -43,7 +43,7 @@ TrafficTape keeps **representative examples**, not every request. Statistics kee
 |---|---|
 | **Two fingerprints** | *Endpoint* = method + route + query names. *Scenario* = endpoint + request shape + response characteristic. Coverage is not “we hit `PATCH /assets/{id}`.” |
 | **Exchange graph** | Inbound `exchangeId` + outbound `parentExchangeId` / `sequence`. Reconstruct one user request and the calls it made. |
-| **Safe defaults** | Secrets, cookies, `/health`, `/actuator/**`, multipart, and binary are omitted. Bodies are capped. |
+| **Safe defaults** | Secrets, cookies, `/health`, `/actuator/**`, multipart, and binary are omitted. Bodies are capped. Denylisted fields are redacted in JSON, XML, and form-urlencoded payloads alike. |
 | **Fail-open** | Capture never fails the application. A full queue drops the event. |
 | **A corpus, not a dump of every request** | First N examples per *scenario*. `statistics.json` is the index; `gaps.json` and `fanout.json` are the rewrite brief. |
 | **Escape hatch** | `@Bean` of `CaptureSink`, `Sampler`, `Fingerprinter`, or `CaptureMetrics`. Unknown HTTP stack: `captureEngine.record(ObservedExchange.builder()…)`. |
@@ -80,6 +80,8 @@ That graph is what lets an offline tool emit **one regression test + N mocks**.
 TrafficTape is not meant to stay in production.
 
 ## Install
+
+Java **17+**, Spring Boot **3.x**, Spring MVC (servlet). `traffictape-core` depends on Jackson and SLF4J only — nothing a Spring Boot application does not already have. Outbound support for `RestClient` (Boot 3.2+) and OkHttp activates only when those classes are on the classpath.
 
 ```xml
 <dependency>
@@ -207,9 +209,12 @@ If security **does** allow a bucket, `traffictape-sink-s3` writes the file tree 
 
 ## v0.1 limits
 
+- Inbound capture is **Spring MVC (servlet) only**. WebFlux inbound is not supported.
+- **Async servlet** dispatches (`DeferredResult`, `Callable`, `AsyncContext`) lose inbound/outbound correlation — outbound calls made on the async thread are not linked to their parent.
 - WebClient **request** bodies are not rematerialized (responses are).
+- Plain-text bodies cannot be field-redacted; unparseable (usually truncated) JSON is omitted.
 - Inbound responses are still teed after a scenario’s example budget is full (enqueueing stops).
-- Sampler budget is per JVM (four tasks × 100 examples ≈ 400 events).
+- Sampler budget is per JVM (four tasks × 100 examples ≈ 400 events), so a corpus from multiple instances needs deduplication by scenario fingerprint.
 - No CLI, Karate, or WireMock generation.
 
 ## Docs

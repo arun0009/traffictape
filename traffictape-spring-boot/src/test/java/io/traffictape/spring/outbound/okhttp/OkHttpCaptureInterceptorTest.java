@@ -39,7 +39,7 @@ class OkHttpCaptureInterceptorTest {
         }
 
         assertThat(queue.size()).isEqualTo(1);
-        HttpTransaction tx = queue.drain(1).getFirst();
+        HttpTransaction tx = queue.drain(1).get(0);
         assertThat(tx.method()).isEqualTo("POST");
         assertThat(tx.path()).isEqualTo("/ledger");
         assertThat(tx.response().status()).isEqualTo(201);

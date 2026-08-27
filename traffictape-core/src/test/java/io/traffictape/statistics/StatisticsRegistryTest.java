@@ -54,7 +54,7 @@ class StatisticsRegistryTest {
             observe(few, nightly, "/jobs/nightly", Instant.now());
             few.recordCaptured(nightly, 12);
         }
-        assertThat(few.snapshot().gaps().getFirst().bodiesComplete()).isTrue();
+        assertThat(few.snapshot().gaps().get(0).bodiesComplete()).isTrue();
 
         StatisticsRegistry hot = new StatisticsRegistry(32, 2, Duration.ZERO);
         Fingerprint busy = new Fingerprint("hot", "INBOUND GET /hot");
@@ -64,7 +64,7 @@ class StatisticsRegistryTest {
                 hot.recordCaptured(busy, 8);
             }
         }
-        StatisticsRegistry.Gap gap = hot.snapshot().gaps().getFirst();
+        StatisticsRegistry.Gap gap = hot.snapshot().gaps().get(0);
         assertThat(gap.count()).isEqualTo(10);
         assertThat(gap.capturedExamples()).isEqualTo(2);
         assertThat(gap.bodiesComplete()).isTrue();

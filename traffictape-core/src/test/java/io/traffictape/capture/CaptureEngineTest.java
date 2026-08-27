@@ -24,7 +24,7 @@ class CaptureEngineTest {
         assertThat(engine.statistics().observed()).isEqualTo(3);
         assertThat(engine.statistics().captured()).isEqualTo(2);
         assertThat(queue.size()).isEqualTo(2);
-        HttpTransaction tx = queue.drain(1).getFirst();
+        HttpTransaction tx = queue.drain(1).get(0);
         assertThat(tx.direction()).isEqualTo(Direction.INBOUND);
         assertThat(tx.route()).isEqualTo("/accounts/{id}");
         assertThat(tx.fingerprints().endpoint().id()).isEqualTo(recordAndFingerprint());
@@ -34,7 +34,7 @@ class CaptureEngineTest {
         CaptureQueue q = new CaptureQueue(10);
         CaptureEngine e = CaptureEngine.createDefault(q, 2);
         e.record(get("/accounts/9", 200));
-        return q.drain(1).getFirst().fingerprints().endpoint().id();
+        return q.drain(1).get(0).fingerprints().endpoint().id();
     }
 
     @Test

@@ -44,4 +44,32 @@ class BodyCodecTest {
         assertThat(capture.body().toString()).contains("[REDACTED]");
         assertThat(capture.body().toString()).doesNotContain("\"x\"");
     }
+
+    @Test
+    void xmlIsRedacted() {
+        BodyCapture capture = jsonCodec.decode(
+                "<r><password>hunter2</password></r>".getBytes(StandardCharsets.UTF_8),
+                "application/xml", false, 34L);
+        assertThat(capture.encoding()).isEqualTo(BodyEncoding.TEXT);
+        assertThat(capture.body().toString()).doesNotContain("hunter2");
+    }
+
+    @Test
+    void omitsUnparseableJsonRatherThanStoringItRaw() {
+        BodyCapture capture = jsonCodec.decode(
+                "{\"password\":\"hunter2\", truncated".getBytes(StandardCharsets.UTF_8),
+                "application/json", true, 500L);
+        assertThat(capture.encoding()).isEqualTo(BodyEncoding.OMITTED);
+        assertThat(capture.body()).isNull();
+        assertThat(capture.sizeBytes()).isEqualTo(500);
+    }
+
+    @Test
+    void omitsTextBodiesWhenDisabled() {
+        BodyCodec noText = new BodyCodec(
+                new ObjectMapper(), new Redactor(CapturePolicy.safeDefaults()), 1024, false);
+        BodyCapture capture = noText.decode("<r>x</r>".getBytes(StandardCharsets.UTF_8),
+                "application/xml", false, 8L);
+        assertThat(capture.encoding()).isEqualTo(BodyEncoding.OMITTED);
+    }
 }
