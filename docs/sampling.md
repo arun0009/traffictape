@@ -16,6 +16,6 @@ PATCH /assets/{id} + {status:string} + 200
 PATCH /assets/{id} + {owner:string} + 200
 ```
 
-v0.2: **first N** per scenario (`max-examples-per-scenario`, default 50). Bodies stop at N; counts continue. New scenarios get their own N. `Sampler` is the extension point.
+Today: **first N** per scenario (`max-examples-per-scenario`, default 50). Bodies stop at N; counts continue. New scenarios get their own N. `Sampler` is the extension point.
 
 Endpoint stats rank volume; scenario stats rank shapes.

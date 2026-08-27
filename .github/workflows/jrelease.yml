@@ -20,6 +20,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      # A tag pushed from a stale local clone releases whatever it points at.
+      # That has shipped the wrong commit before; fail loudly instead.
+      - name: Verify the tag is the tip of main
+        run: |
+          git fetch --quiet origin main
+          tag_sha="$(git rev-parse HEAD)"
+          main_sha="$(git rev-parse origin/main)"
+          if [ "$tag_sha" != "$main_sha" ]; then
+            echo "::error::${GITHUB_REF_NAME} points at ${tag_sha}, but main is at ${main_sha}."
+            echo "::error::Move the tag to the commit you mean to release, then push it again."
+            exit 1
+          fi
+
       - name: Setup Java 21
         uses: actions/setup-java@v6
         with:

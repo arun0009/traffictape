@@ -72,7 +72,7 @@ void capturesTraffic() throws Exception {
 }
 ```
 
-Pair that with `@DirtiesContext`, since the context is no longer capturing afterwards. A worked example lives in `traffictape-example/src/test/java/io/traffictape/example/CaptureFromTestSuiteTest.java`, and it runs as part of this repository's build.
+Pair that with `@DirtiesContext`, since the context is no longer capturing afterwards. A worked example lives in `tests/traffictape-integration-tests/src/test/java/io/traffictape/example/CaptureFromTestSuiteTest.java`, and it runs as part of this repository's build.
 
 ## Many contexts, one corpus
 

@@ -1,8 +1,8 @@
 MVN     := ./mvnw -B
 VERSION := $(shell sed -n 's|.*<version>\(.*\)</version>.*|\1|p' pom.xml | head -1)
 
-CLI_JAR     := traffictape-cli/target/traffictape-cli-$(VERSION)-all.jar
-EXAMPLE_JAR := traffictape-example/target/traffictape-example-$(VERSION).jar
+CLI_JAR  := traffictape-cli/target/traffictape-cli-$(VERSION)-all.jar
+DEMO_JAR := tests/traffictape-integration-tests/target/traffictape-integration-tests-$(VERSION).jar
 
 DEMO_DIR  := target/demo
 DEMO_PORT := 18080
@@ -42,7 +42,7 @@ demo: quick ## Capture from the demo app over real HTTP, then generate mocks
 	@mkdir -p $(DEMO_DIR)
 	@rm -rf $(CORPUS) $(OUT)
 	@set -e; \
-	java -jar $(EXAMPLE_JAR) \
+	java -jar $(DEMO_JAR) \
 		--server.port=$(DEMO_PORT) \
 		--traffictape.output.directory=$(CORPUS) \
 		--traffictape.flush.interval=1s > $(DEMO_DIR)/app.log 2>&1 & \
@@ -74,17 +74,17 @@ generate: ## Generate mocks from a corpus: make generate CORPUS=<dir> OUT=<dir>
 	java -jar $(CLI_JAR) generate --corpus $(CORPUS) --out $(OUT)
 
 example: quick ## Run the demo app in the foreground
-	java -jar $(EXAMPLE_JAR) --server.port=$(DEMO_PORT)
+	java -jar $(DEMO_JAR) --server.port=$(DEMO_PORT)
 
 cli: ## Build only the CLI jar and print its path
-	$(MVN) -pl traffictape-cli -am package -DskipTests
+	$(MVN) -pl :traffictape-cli -am package -DskipTests
 	@echo $(CLI_JAR)
 
 # exec:exec rather than exec:java: JMH forks a JVM per benchmark, and a fork only inherits the
 # classpath if the parent is a real process.
 bench: ## Run the JMH capture benchmarks
-	$(MVN) -pl traffictape-benchmarks -am install -DskipTests
-	$(MVN) -pl traffictape-benchmarks exec:exec \
+	$(MVN) -pl :traffictape-overhead-tests -am install -DskipTests
+	$(MVN) -pl :traffictape-overhead-tests exec:exec \
 		-Dexec.executable=java \
 		-Dexec.classpathScope=compile \
 		-Dexec.args="-classpath %classpath org.openjdk.jmh.Main $(BENCH_ARGS)"

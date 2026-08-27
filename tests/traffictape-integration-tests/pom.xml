@@ -5,12 +5,13 @@
     <parent>
         <groupId>io.github.arun0009</groupId>
         <artifactId>traffictape</artifactId>
-        <version>0.2.0-SNAPSHOT</version>
+        <version>0.3.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>traffictape-example</artifactId>
-    <name>traffictape-example</name>
-    <description>Demo Spring Boot app that captures inbound and outbound HTTP</description>
+    <artifactId>traffictape-integration-tests</artifactId>
+    <name>traffictape-integration-tests</name>
+    <description>End-to-end test: a real Spring Boot app captures HTTP, then the CLI generates mocks from it</description>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>

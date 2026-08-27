@@ -92,7 +92,7 @@ Outbound calls become WireMock / Mountebank stubs. Inbound requests become rows 
 
 Need a different store, redaction rule, or URL id shape? Expose a `@Bean` of `CaptureSink`, `Redactor`, or `PathNormalizer`.
 
-## Limits (v0.2)
+## Limits
 
 - Inbound: Spring MVC only (no WebFlux).
 - Async servlet (`DeferredResult`, `Callable`) does not link outbound calls to the parent request.

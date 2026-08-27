@@ -1,6 +1,6 @@
 # traffictape-core
 
-The capture engine, with no framework on it: HTTP transaction model, fingerprinting, scenario sampling, redaction, inbound/outbound correlation, and the `CaptureSink` interface.
+The capture engine, with no framework on it: HTTP transaction model, fingerprinting, scenario sampling, redaction, inbound/outbound correlation, the `CaptureSink` interface, and the default gzip JSONL file writer.
 
 You do not add this yourself. Every other module brings it in.
 

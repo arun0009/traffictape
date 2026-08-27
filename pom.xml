@@ -5,7 +5,7 @@
 
     <groupId>io.github.arun0009</groupId>
     <artifactId>traffictape</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>TrafficTape</name>
     <description>Privacy-aware HTTP traffic corpus and flight recorder. Spring Boot is the first capture adapter.</description>
@@ -33,8 +33,8 @@
         <module>traffictape-sink-cloudwatch</module>
         <module>traffictape-spring-boot</module>
         <module>traffictape-cli</module>
-        <module>traffictape-example</module>
-        <module>traffictape-benchmarks</module>
+        <module>tests/traffictape-integration-tests</module>
+        <module>tests/traffictape-overhead-tests</module>
     </modules>
 
     <scm>

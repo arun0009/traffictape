@@ -5,12 +5,13 @@
     <parent>
         <groupId>io.github.arun0009</groupId>
         <artifactId>traffictape</artifactId>
-        <version>0.2.0-SNAPSHOT</version>
+        <version>0.3.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>traffictape-benchmarks</artifactId>
-    <name>traffictape-benchmarks</name>
-    <description>JMH benchmarks and tests asserting capture stays off the request thread</description>
+    <artifactId>traffictape-overhead-tests</artifactId>
+    <name>traffictape-overhead-tests</name>
+    <description>Tests asserting capture stays off the request thread, plus the JMH benchmarks</description>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
