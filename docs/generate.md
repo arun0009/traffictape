@@ -2,6 +2,8 @@
 
 `traffictape-cli` reads a corpus and writes mock definitions. It is offline: it opens no sockets and needs no application on the classpath.
 
+Download the `-all` jar from the [latest release](https://github.com/arun0009/traffictape/releases/latest). It is self-contained; nothing to add to your build.
+
 ```bash
 java -jar traffictape-cli-${traffictape.version}-all.jar generate \
   --corpus /tmp/traffic-tape \

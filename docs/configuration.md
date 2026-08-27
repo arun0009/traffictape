@@ -128,7 +128,17 @@ A sink resumes numbering after the events files already in the directory and cre
 
 ## Fargate / CloudWatch
 
-When S3 is blocked, add `traffictape-sink-cloudwatch` and set `traffictape.output.cloudwatch.log-group`. One group, one stream per task (hostname by default). The worker batches; this sink splits `PutLogEvents` under 1&nbsp;MB. Failed puts drop the batch.
+When S3 is blocked, add the sink alongside `traffictape-spring-boot` and set `traffictape.output.cloudwatch.log-group`.
+
+```xml
+<dependency>
+    <groupId>io.github.arun0009</groupId>
+    <artifactId>traffictape-sink-cloudwatch</artifactId>
+    <version>${traffictape.version}</version>
+</dependency>
+```
+
+One group, one stream per task (hostname by default). The worker batches; this sink splits `PutLogEvents` under 1&nbsp;MB. Failed puts drop the batch.
 
 Each flush writes:
 
@@ -154,7 +164,17 @@ Dump: `aws logs filter-log-events --log-group-name /traffictape/qa/payments-api 
 
 ## Fargate / S3
 
-If a bucket is allowed, add `traffictape-sink-s3` instead. Task role needs `s3:PutObject`. Do not point four tasks at one key: default `unique-per-instance` writes:
+If a bucket is allowed, add this sink instead of the CloudWatch one.
+
+```xml
+<dependency>
+    <groupId>io.github.arun0009</groupId>
+    <artifactId>traffictape-sink-s3</artifactId>
+    <version>${traffictape.version}</version>
+</dependency>
+```
+
+Task role needs `s3:PutObject`. Do not point four tasks at one key: default `unique-per-instance` writes:
 
 ```text
 s3://qa-traffic-tape/payments-api/2026-08-27/{hostname}/
