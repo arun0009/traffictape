@@ -25,7 +25,6 @@ import reactor.core.publisher.Mono;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +142,7 @@ final class WebClientCaptureFilter implements ExchangeFilterFunction {
                     .method(request.method().name())
                     .path(path)
                     .destination(properties.destinationName(host))
-                    .query(query(uri.getRawQuery()))
+                    .query(ObservedExchange.parseQuery(uri.getRawQuery()))
                     .requestHeaders(toMap(request.headers()))
                     .requestContentType(request.headers().getFirst("Content-Type"))
                     .status(response.statusCode().value())
@@ -157,27 +156,12 @@ final class WebClientCaptureFilter implements ExchangeFilterFunction {
                     .outboundSequence(sequence)
                     .build());
         } catch (Throwable ignored) {
-            // fail-open
         }
     }
 
     private static Map<String, List<String>> toMap(org.springframework.http.HttpHeaders headers) {
         Map<String, List<String>> out = new LinkedHashMap<>();
         headers.forEach((k, v) -> out.put(k, List.copyOf(v)));
-        return out;
-    }
-
-    private static Map<String, List<String>> query(String raw) {
-        Map<String, List<String>> out = new LinkedHashMap<>();
-        if (raw == null || raw.isEmpty()) {
-            return out;
-        }
-        for (String part : raw.split("&")) {
-            int eq = part.indexOf('=');
-            String name = eq < 0 ? part : part.substring(0, eq);
-            String value = eq < 0 ? "" : part.substring(eq + 1);
-            out.computeIfAbsent(name, k -> new ArrayList<>()).add(value);
-        }
         return out;
     }
 }

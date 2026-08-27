@@ -20,8 +20,7 @@ import java.util.Map;
 
 /**
  * Replaces the file sink when {@code traffictape.output.s3.bucket} is set.
- * Runs before Spring file auto-config so {@code @ConditionalOnMissingBean(CaptureSink)}
- * on the file writer backs off.
+ * Registered before Spring file auto-config so this bean is the one {@code CaptureSink} present.
  */
 @AutoConfiguration(beforeName = "io.traffictape.spring.TrafficTapeAutoConfiguration")
 @ConditionalOnClass(S3Client.class)
@@ -52,7 +51,7 @@ class TrafficTapeS3AutoConfiguration {
         String service = environment.getProperty("spring.application.name", "application");
         String prefix = InstancePrefix.resolve(properties, service);
         String location = "s3://" + properties.getBucket() + "/" + prefix;
-        log.info("TrafficTape corpus → {}", location);
+        log.info("TrafficTape writing to {}", location);
         Map<String, Object> meta = new LinkedHashMap<>();
         meta.put("recorderVersion", TrafficTapeVersion.get());
         meta.put("serviceName", service);

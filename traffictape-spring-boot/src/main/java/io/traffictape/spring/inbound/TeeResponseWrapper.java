@@ -23,16 +23,10 @@ final class TeeResponseWrapper extends HttpServletResponseWrapper {
     private long declaredSize;
     private ServletOutputStream stream;
     private PrintWriter writer;
-    private boolean buffering = true;
 
     public TeeResponseWrapper(HttpServletResponse response, int maxBytes) {
         super(response);
         this.maxBytes = maxBytes;
-    }
-
-    public void stopBuffering() {
-        this.buffering = false;
-        captured.reset();
     }
 
     public byte[] captured() {
@@ -101,9 +95,6 @@ final class TeeResponseWrapper extends HttpServletResponseWrapper {
 
         private void copy(byte[] b, int off, int len) {
             declaredSize += len;
-            if (!buffering) {
-                return;
-            }
             int room = maxBytes - captured.size();
             if (room > 0) {
                 captured.write(b, off, Math.min(len, room));

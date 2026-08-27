@@ -24,15 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The capture engine. Adapters only call {@link #record}; backends only implement {@link CaptureSink}.
+ * Adapters call {@link #record}; backends implement {@link CaptureSink}.
+ * {@code record} never throws.
  *
  * <pre>
  *   adapter  →  ObservedExchange  →  record()  →  stats always
  *                                      └─ sampler? → redact → queue.offer
  *                                                            → worker → CaptureSink
  * </pre>
- *
- * Fail-open: {@code record} never throws to the application.
  */
 public final class CaptureEngine {
 
@@ -76,20 +75,8 @@ public final class CaptureEngine {
         return statistics;
     }
 
-    public CaptureQueue queue() {
-        return queue;
-    }
-
-    public Sampler sampler() {
-        return sampler;
-    }
-
-    public PathNormalizer pathNormalizer() {
-        return pathNormalizer;
-    }
-
     /**
-     * Observe one HTTP exchange. Always updates statistics. Enqueues a corpus example only
+     * Observe one HTTP exchange. Always updates statistics. Enqueues a body only
      * when the sampler still wants this scenario. Never throws.
      */
     public void record(ObservedExchange observed) {
@@ -146,20 +133,6 @@ public final class CaptureEngine {
             log.debug("TrafficTape capture failed; application request continues", t);
         } finally {
             metrics.recordCaptureLatencyNanos(System.nanoTime() - start);
-        }
-    }
-
-    public boolean offer(HttpTransaction transaction) {
-        try {
-            if (!queue.offer(transaction)) {
-                statistics.recordDropped();
-                metrics.recordDropped();
-                return false;
-            }
-            return true;
-        } catch (Throwable t) {
-            metrics.recordError();
-            return false;
         }
     }
 

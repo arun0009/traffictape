@@ -11,9 +11,7 @@ import java.util.Map;
 
 /**
  * Emits one replayable case per inbound scenario, each naming the outbound stubs it needs.
- *
- * <p>This is the part a recording proxy cannot produce: the corpus knows which outbound calls a
- * given inbound request caused, so a case and its mocks stay together.
+ * The recording already knows which outbound calls a given inbound request caused.
  */
 final class TestPlanGenerator {
 

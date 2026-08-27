@@ -13,7 +13,7 @@ import io.traffictape.model.HttpTransaction;
 import io.traffictape.redaction.Redactor;
 
 /**
- * Turns a raw observation into a corpus event. Redaction happens here, before enqueue.
+ * Turns a raw observation into an event. Redaction happens here, before enqueue.
  */
 final class HttpTransactionFactory {
 
@@ -67,29 +67,15 @@ final class HttpTransactionFactory {
 
     private static Correlation correlation(ObservedExchange observed) {
         ExchangeContext ctx = observed.exchangeContext();
+        String trace = ctx == null ? null : ctx.traceId();
+        String span = ctx == null ? null : ctx.spanId();
+        String corr = ctx == null ? null : ctx.correlationId();
         if (observed.direction() == Direction.OUTBOUND) {
-            if (ctx == null) {
-                return new Correlation(null, null, observed.outboundSequence(), null, null, null, null);
-            }
-            return new Correlation(
-                    null,
-                    ctx.exchangeId(),
-                    observed.outboundSequence(),
-                    null,
-                    ctx.traceId(),
-                    ctx.spanId(),
-                    ctx.correlationId());
+            String parent = ctx == null ? null : ctx.exchangeId();
+            return Correlation.outbound(parent, observed.outboundSequence(), trace, span, corr);
         }
-        if (ctx == null) {
-            return Correlation.inbound(null, null, null, null);
-        }
-        return new Correlation(
-                ctx.exchangeId(),
-                null,
-                null,
-                ctx.outboundCount(),
-                ctx.traceId(),
-                ctx.spanId(),
-                ctx.correlationId());
+        String id = ctx == null ? null : ctx.exchangeId();
+        Integer hops = ctx == null ? null : ctx.outboundCount();
+        return Correlation.inbound(id, hops, trace, span, corr);
     }
 }

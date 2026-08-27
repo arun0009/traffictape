@@ -6,11 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Removes sensitive data before it enters the capture queue.
- *
- * <p>Replace this when a name-based denylist is not enough — value-shaped detection (card numbers,
- * national IDs, emails in free text), an existing in-house classifier, or per-tenant rules. This is
- * the seam a security review will ask about, so it is deliberately substitutable:
+ * Redacts secrets before an event is queued. Default is a name denylist; override for
+ * value matching (card numbers in free text, and so on):
  *
  * <pre>{@code
  * @Bean
@@ -24,8 +21,7 @@ import java.util.Map;
  * }
  * }</pre>
  *
- * <p>Implementations run on the application request thread. They must be fast and must not throw;
- * the caller drops the example rather than failing the request.
+ * Runs on the request thread. Do not throw; a failure drops the example, not the request.
  */
 public interface Redactor {
 
@@ -38,9 +34,8 @@ public interface Redactor {
     JsonNode json(JsonNode node);
 
     /**
-     * Redacts a non-JSON text body. Formats with no field structure to key off cannot be redacted
-     * field-wise; return the body unchanged and let {@code capture.text-bodies} omit it, or
-     * implement value-shaped detection here.
+     * Redacts XML, form bodies, and other text. Return the body unchanged if there are no
+     * field names to key off; set {@code capture.text-bodies: false} to drop those entirely.
      */
     String text(String body, String contentType);
 }

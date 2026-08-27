@@ -3,11 +3,8 @@ package io.traffictape.fingerprint;
 import java.util.regex.Pattern;
 
 /**
- * Recognises UUIDs, ULIDs, integers, and long hex strings. Slugs, tenant codes, and opaque tokens
- * are treated as literal segments, so most adopters need to add at least one shape.
- *
- * <p>Override {@link #normalizeSegment(String)} to add shapes while keeping the built-in ones,
- * rather than reimplementing the set:
+ * UUIDs, ULIDs, integers, and long hex. Anything else is left as a literal — override
+ * {@link #normalizeSegment(String)} for tenant codes, slugs, {@code acct_…}, and similar:
  *
  * <pre>{@code
  * @Bean

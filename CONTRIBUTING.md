@@ -1,12 +1,11 @@
 # Contributing
 
-TrafficTape is a **privacy-aware HTTP traffic corpus and flight recorder**.
-Spring Boot is the first capture adapter, not the product identity.
+TrafficTape records HTTP from a running Spring Boot app. A CLI turns that recording into WireMock and Mountebank stubs. Spring Boot is the first adapter, not the product.
 
 ## Principles
 
-1. The corpus schema is the stable contract. Treat field renames as breaking.
-2. Capture is fail-open. Application traffic always wins.
+1. The event JSON is the stable contract. Treat field renames as breaking.
+2. Capture errors never fail the application request.
 3. Default to omission: never capture secrets or binary/multipart bodies.
 4. The CLI emits mock *definitions* and a test plan as data. It does not generate Karate or JUnit source.
 5. New language adapters (Go, Node, …) should produce the same `HttpTransaction` JSON.
@@ -33,7 +32,7 @@ CaptureSink mySink() {
 }
 ```
 
-Same pattern for `Fingerprinter`, `Sampler`, `CaptureMetrics`, `Redactor`, and `PathNormalizer`. File/Spring defaults back off via `@ConditionalOnMissingBean`. Do not add framework types to `traffictape-core`.
+Same pattern for `Fingerprinter`, `Sampler`, `CaptureMetrics`, `Redactor`, and `PathNormalizer`. File/Spring defaults are skipped if you already provide a bean (`@ConditionalOnMissingBean`). Do not add framework types to `traffictape-core`.
 
 Do not add more sinks to this repository (file, S3, CloudWatch are the set). Unknown output is a `@Bean CaptureSink`. Unknown HTTP clients call `CaptureEngine.record`.
 

@@ -25,7 +25,7 @@ public class TrafficTapeProperties {
     private int maxResponseBytes = 1024 * 1024;
     /** Hand-off queue depth. When full, exchanges are dropped rather than blocking the request. */
     private int queueSize = 100_000;
-    /** Cap on distinct fingerprints tracked, bounding memory on high-cardinality traffic. */
+    /** Cap on distinct route+scenario keys tracked, bounding memory on high-cardinality traffic. */
     private int maxUniqueFingerprints = 50_000;
     /** How long shutdown waits for the writer to drain before giving up. */
     private Duration shutdownDrain = Duration.ofSeconds(5);
@@ -165,7 +165,7 @@ public class TrafficTapeProperties {
     }
 
     public static class Output {
-        /** Corpus directory. Point this at a disposable path; the corpus is not meant to persist. */
+        /** Output directory. Use a disposable path; this is not meant to persist. */
         private String directory = "/tmp/traffic-tape";
 
         /**
@@ -311,7 +311,7 @@ public class TrafficTapeProperties {
     }
 
     public static class Redaction {
-        /** Turning this off writes credentials and cookies to the corpus verbatim. Logs a WARN. */
+        /** Turning this off writes credentials and cookies as-is. Logs a WARN. */
         private boolean enabled = true;
         /** Headers replaced with [REDACTED]. Setting this replaces the defaults; list them again to keep them. */
         private List<String> headers = new ArrayList<>(List.of(

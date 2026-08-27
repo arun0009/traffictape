@@ -32,7 +32,7 @@ final class StubSupport {
     }
 
     /**
-     * Converts a corpus route template into a regex. {@code /assets/{id}} becomes
+     * Converts a route template into a regex. {@code /assets/{id}} becomes
      * {@code /assets/[^/]+} with every literal character escaped.
      */
     static String routeToRegex(String route) {

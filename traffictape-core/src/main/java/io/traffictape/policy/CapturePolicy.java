@@ -70,9 +70,9 @@ public final class CapturePolicy {
     }
 
     /**
-     * Drops an entire exchange when a request header marks it as traffic you do not want in the
-     * corpus — a smoke-test harness, a synthetic monitor, a load generator. Distinct from
-     * {@link #captureHeader(String)}, which decides which headers of a *recorded* exchange to store.
+     * Drops an exchange when a request header marks it as traffic you do not want recorded
+     * (a smoke test, a synthetic monitor, a load generator). Distinct from
+     * {@link #captureHeader(String)}, which decides which headers of a recorded exchange to store.
      *
      * <p>A pattern of {@code *} matches any value, so a header can be excluded on presence alone.
      */

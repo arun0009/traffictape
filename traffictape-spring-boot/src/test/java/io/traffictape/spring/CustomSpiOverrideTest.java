@@ -31,9 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * The two things every adopter has to customise — how identifiers are recognised in a URL, and what
- * counts as sensitive — must be replaceable with a bean. If either regresses to a hard-wired
- * implementation, an org whose IDs or PII rules differ cannot use the library without forking.
+ * A {@code PathNormalizer} or {@code Redactor} {@code @Bean} replaces the default.
  */
 @SpringBootTest(
         classes = CustomSpiOverrideTest.App.class,

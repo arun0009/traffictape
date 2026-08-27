@@ -69,7 +69,7 @@ public class TrafficTapeAutoConfiguration {
         boolean redact = redaction.isEnabled();
         if (!redact) {
             log.warn("TrafficTape redaction is DISABLED (traffictape.redaction.enabled=false). "
-                    + "Secrets, credentials, and cookies will be written to the corpus verbatim.");
+                    + "Secrets, credentials, and cookies will be written as-is.");
         }
         return CapturePolicy.builder()
                 .includeMethods(capture.getInclude().getMethods())

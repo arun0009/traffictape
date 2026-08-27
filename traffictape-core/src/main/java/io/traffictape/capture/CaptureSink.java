@@ -3,12 +3,8 @@ package io.traffictape.capture;
 import java.io.Closeable;
 
 /**
- * Pluggable output. The worker calls {@link #write(CaptureBatch)}; it never
- * ships one event at a time.
- *
- * <p>Shipped sinks: file (default), S3, CloudWatch. That is the closed set.
- * Anything else is this interface plus a {@code @Bean CaptureSink} — core
- * does not change.
+ * Where events go. The worker calls {@link #write(CaptureBatch)} with a batch, never one event.
+ * File, S3, and CloudWatch ship in this repo; anything else is a {@code @Bean} of this type.
  */
 public interface CaptureSink extends Closeable {
 
@@ -22,10 +18,7 @@ public interface CaptureSink extends Closeable {
         return false;
     }
 
-    /**
-     * Persist one flush of events plus a statistics snapshot. Implementations must not throw
-     * in a way that reaches application request threads — the worker already catches.
-     */
+    /** Write one flush. Thrown exceptions are caught by the worker, not the request. */
     void write(CaptureBatch batch);
 
     default void flush() {

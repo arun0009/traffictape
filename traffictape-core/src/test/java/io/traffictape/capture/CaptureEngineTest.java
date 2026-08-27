@@ -133,13 +133,6 @@ class CaptureEngineTest {
     }
 
     @Test
-    void offerNeverThrows() {
-        CaptureQueue queue = new CaptureQueue(1);
-        CaptureEngine engine = CaptureEngine.createDefault(queue, 10);
-        assertThat(engine.offer(null)).isFalse();
-    }
-
-    @Test
     void fanoutRecordsOutboundSequenceOnInboundComplete() {
         CaptureQueue queue = new CaptureQueue(10);
         CaptureEngine engine = CaptureEngine.createDefault(queue, 10);

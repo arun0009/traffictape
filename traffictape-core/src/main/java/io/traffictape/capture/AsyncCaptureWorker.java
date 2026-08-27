@@ -107,7 +107,6 @@ public final class AsyncCaptureWorker implements AutoCloseable {
         try {
             sink.flush();
         } catch (Throwable ignored) {
-            // fail-open on shutdown
         }
     }
 
@@ -150,7 +149,6 @@ public final class AsyncCaptureWorker implements AutoCloseable {
         try {
             sink.close();
         } catch (Throwable ignored) {
-            // fail-open
         }
     }
 }

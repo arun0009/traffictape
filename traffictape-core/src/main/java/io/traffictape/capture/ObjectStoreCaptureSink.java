@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Same corpus layout as the file sink via {@link ObjectPutter}. Fail-open: put failures throw for the worker.
+ * Same file layout as the file sink, via {@link ObjectPutter}. Put failures throw; the worker catches them.
  */
 public final class ObjectStoreCaptureSink implements CaptureSink {
 
@@ -83,7 +83,7 @@ public final class ObjectStoreCaptureSink implements CaptureSink {
             writeMetadata(snapshot);
             CorpusCompanionFiles.writeSidecars(snapshot, mapper, putter::put);
         } catch (IOException e) {
-            log.debug("TrafficTape corpus index put failed", e);
+            log.debug("TrafficTape index put failed", e);
         }
     }
 

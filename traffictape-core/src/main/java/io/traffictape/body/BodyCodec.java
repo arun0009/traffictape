@@ -6,10 +6,11 @@ import io.traffictape.model.BodyCapture;
 import io.traffictape.redaction.Redactor;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Locale;
 
 /**
- * Converts bounded raw bytes into a corpus {@link BodyCapture}. Never emits raw binary.
+ * Converts bounded raw bytes into a {@link BodyCapture}. Never emits raw binary.
  */
 public final class BodyCodec {
 
@@ -41,7 +42,7 @@ public final class BodyCodec {
         byte[] slice = bytes;
         boolean over = truncated || slice.length > maxBytes;
         if (slice.length > maxBytes) {
-            slice = java.util.Arrays.copyOf(slice, maxBytes);
+            slice = Arrays.copyOf(slice, maxBytes);
             over = true;
         }
         if (isJson(ct)) {

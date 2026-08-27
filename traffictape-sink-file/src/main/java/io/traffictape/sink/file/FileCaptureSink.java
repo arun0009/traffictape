@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Writes a TrafficTape corpus:
+ * Writes:
  * <pre>
  *   {directory}/
  *     FOR_CLAUDE.md
@@ -194,7 +194,7 @@ public final class FileCaptureSink implements CaptureSink {
             writeMetadata(snapshot);
             CorpusCompanionFiles.writeSidecars(snapshot, mapper, writer);
         } catch (IOException e) {
-            log.debug("TrafficTape corpus index write failed", e);
+            log.debug("TrafficTape index write failed", e);
         }
     }
 

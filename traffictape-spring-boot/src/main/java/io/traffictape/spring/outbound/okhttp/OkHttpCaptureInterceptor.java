@@ -26,7 +26,7 @@ import java.util.Map;
 
 /**
  * OkHttp application interceptor. Copies a capped request body so the call can
- * still proceed; {@code peekBody} for the response. Fail-open.
+ * still proceed; {@code peekBody} for the response. Capture errors never fail the call.
  *
  * <p>When RestClient/RestTemplate already recorded the hop, this interceptor
  * is a no-op so the same call is not stored twice.
@@ -67,7 +67,6 @@ public final class OkHttpCaptureInterceptor implements Interceptor {
         try {
             record(outbound, requestCaptured, requestTruncated, requestSize, response, ctx, sequence, start);
         } catch (Throwable ignored) {
-            // fail-open
         }
         return response;
     }

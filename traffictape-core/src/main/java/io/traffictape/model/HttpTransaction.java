@@ -7,11 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * One HTTP request/response pair. This is the corpus atom — framework adapters
- * (Spring today; others later) produce these events. They are not Spring types.
+ * One HTTP request/response pair. Adapters produce these events; they are not Spring types.
  *
- * <p>Schema version {@code 1}. Field names are stable so offline tools and
- * future CLIs ({@code traffictape inspect}, {@code generate}) can depend on them.
+ * <p>Schema version {@code 1}. Field names are stable so offline tools can depend on them.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record HttpTransaction(

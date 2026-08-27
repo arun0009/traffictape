@@ -11,18 +11,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Answers the one operational question capture raises: can I turn this off yet?
- *
- * <p>Without it the answer is only in the corpus itself, as the trailing statistics event of a
- * gzipped file — which means unpacking a corpus to decide whether to keep filling it.
- *
- * <p>Exposed at {@code /actuator/traffictape}. Nothing here contains request or response bodies:
- * it is route templates and counts, so it is safe to expose wherever the rest of Actuator is.
+ * {@code /actuator/traffictape} — whether capture can be turned off.
+ * Route templates and counts only; no bodies.
  */
 @Endpoint(id = "traffictape")
 public class TrafficTapeEndpoint {
 
-    /** Enough to act on without turning the response into the corpus. */
     private static final int MAX_LISTED = 20;
 
     private final StatisticsRegistry statistics;
@@ -44,8 +38,7 @@ public class TrafficTapeEndpoint {
         }
 
         Map<String, Object> out = new LinkedHashMap<>();
-        // Two independent conditions: no newly discovered behaviour for a while, and every
-        // scenario found has the examples a mock needs. Either one alone is misleading.
+        // ready = plateaued and no scenario is missing bodies it should have.
         out.put("ready", snapshot.captureReady() && incomplete.isEmpty());
         out.put("plateauReached", snapshot.captureReady());
         out.put("scenariosMissingExamples", incomplete.size());

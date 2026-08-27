@@ -16,13 +16,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Name-based redaction driven by {@link CapturePolicy}: headers, JSON fields at any depth, XML
- * elements and attributes, and form-urlencoded pairs. Open for extension so a custom
- * {@link Redactor} can add value-shaped detection without reimplementing the structural work.
- *
- * <p>Matching is on names only. A secret sitting in a field that is not on the denylist — a card
- * number in a free-text note, a token in a URL — is captured verbatim, which is what overriding
- * {@link #text(String, String)} or {@link #json(com.fasterxml.jackson.databind.JsonNode)} is for.
+ * Name denylist for headers, JSON, XML (elements and attributes), and form fields.
+ * A secret in a field you did not list is stored as-is — override {@link #text} or {@link #json}.
  */
 public class DefaultRedactor implements Redactor {
 

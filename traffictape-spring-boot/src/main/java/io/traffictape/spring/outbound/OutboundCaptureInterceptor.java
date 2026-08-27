@@ -19,7 +19,6 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.net.URI;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,7 +26,7 @@ import java.util.Map;
 
 /**
  * Shared RestClient / RestTemplate interceptor. Request body is already a byte[].
- * Response: copy a capped prefix for the corpus; the application still reads the full stream.
+ * Response: copy a capped prefix; the application still reads the full stream.
  */
 public final class OutboundCaptureInterceptor implements ClientHttpRequestInterceptor {
 
@@ -88,7 +87,7 @@ public final class OutboundCaptureInterceptor implements ClientHttpRequestInterc
                     .method(request.getMethod().name())
                     .path(path)
                     .destination(properties.destinationName(host))
-                    .query(query(uri.getRawQuery()))
+                    .query(ObservedExchange.parseQuery(uri.getRawQuery()))
                     .requestHeaders(headers(request.getHeaders()))
                     .requestContentType(contentType(request.getHeaders()))
                     .requestBody(req)
@@ -105,7 +104,6 @@ public final class OutboundCaptureInterceptor implements ClientHttpRequestInterc
                     .outboundSequence(sequence)
                     .build());
         } catch (Throwable ignored) {
-            // fail-open
         }
     }
 
@@ -116,20 +114,6 @@ public final class OutboundCaptureInterceptor implements ClientHttpRequestInterc
     private static Map<String, List<String>> headers(HttpHeaders headers) {
         Map<String, List<String>> out = new LinkedHashMap<>();
         headers.forEach((k, v) -> out.put(k, List.copyOf(v)));
-        return out;
-    }
-
-    private static Map<String, List<String>> query(String raw) {
-        Map<String, List<String>> out = new LinkedHashMap<>();
-        if (raw == null || raw.isEmpty()) {
-            return out;
-        }
-        for (String part : raw.split("&")) {
-            int eq = part.indexOf('=');
-            String name = eq < 0 ? part : part.substring(0, eq);
-            String value = eq < 0 ? "" : part.substring(eq + 1);
-            out.computeIfAbsent(name, k -> new ArrayList<>()).add(value);
-        }
         return out;
     }
 
@@ -191,7 +175,6 @@ public final class OutboundCaptureInterceptor implements ClientHttpRequestInterc
             try {
                 body.close();
             } catch (IOException ignored) {
-                // ignore
             }
             delegate.close();
         }

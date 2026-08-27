@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Offline entry point. Reads a corpus and writes mock definitions; it never talks to a network.
+ * Offline entry point. Reads recorded events and writes mock definitions; it never talks to a network.
  */
 public final class TrafficTapeCli {
 
@@ -61,17 +61,17 @@ public final class TrafficTapeCli {
         out.println("""
                 traffictape generate --corpus <path> [options]
 
-                  Reads a TrafficTape corpus and writes mock definitions for the outbound calls the
+                  Reads recorded HTTP and writes mock definitions for the outbound calls the
                   recorded application made, plus a test plan for the inbound requests it served.
 
-                  --corpus <path>   Corpus directory, its events/ directory, or a single
+                  --corpus <path>   Recording directory, its events/ directory, or a single
                                     .jsonl/.jsonl.gz file (for example a CloudWatch dump).
                   --out <dir>       Output directory. Default: ./traffictape-out
                   --format <f>      wiremock | mountebank | both. Default: both
                   --base-port <n>   First port for Mountebank imposters. Default: 4545
                   --help            This message.
 
-                Scenarios are deduplicated by fingerprint, so a corpus collected from several
+                Scenarios are deduplicated by fingerprint, so a recording from several
                 instances yields one stub per distinct behaviour.""");
     }
 

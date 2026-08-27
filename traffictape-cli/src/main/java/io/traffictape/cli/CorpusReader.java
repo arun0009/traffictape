@@ -21,9 +21,9 @@ import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 /**
- * Reads corpus events from either the sink layout ({@code <dir>/events/*.jsonl[.gz]}), a directory
- * of event files, or a single file — the last case being an {@code aws logs filter-log-events}
- * dump, where non-transaction lines such as {@code STATISTICS} are skipped.
+ * Reads events from the sink layout ({@code <dir>/events/*.jsonl[.gz]}), a directory of event
+ * files, or a single file — including an {@code aws logs filter-log-events} dump, where
+ * non-transaction lines such as {@code STATISTICS} are skipped.
  */
 final class CorpusReader {
 
@@ -46,7 +46,7 @@ final class CorpusReader {
         int failed = 0;
         for (Path file : files) {
             // A capture killed mid-flush leaves the last gzip member incomplete. Keep the events
-            // that did make it rather than discarding the whole corpus.
+            // that did make it rather than discarding the whole file.
             try (BufferedReader reader = open(file)) {
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -56,7 +56,7 @@ final class CorpusReader {
                     }
                     try {
                         // Check the discriminator first so a STATISTICS line in a CloudWatch dump
-                        // counts as skipped rather than as a corpus parse failure.
+                        // counts as skipped rather than as a parse failure.
                         JsonNode node = mapper.readTree(trimmed);
                         JsonNode eventType = node.get("eventType");
                         if (eventType == null

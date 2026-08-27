@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** Reads a corpus, writes mock definitions and a test plan, and reports what needs attention. */
+/** Reads recorded events, writes mock definitions and a test plan, and reports what needs attention. */
 final class GenerateCommand {
 
     private final ObjectWriter writer = new ObjectMapper()

@@ -2,10 +2,9 @@ package io.traffictape.fingerprint;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.traffictape.body.BodyCodec;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -40,7 +39,7 @@ public final class JsonShapeExtractor {
         if (json == null || json.length == 0) {
             return NONE;
         }
-        if (contentType != null && !contentType.isBlank() && !io.traffictape.body.BodyCodec.isJson(contentType)) {
+        if (contentType != null && !contentType.isBlank() && !BodyCodec.isJson(contentType)) {
             return NONE;
         }
         try {
@@ -51,15 +50,6 @@ public final class JsonShapeExtractor {
         } catch (Exception ignored) {
             return "unparsed";
         }
-    }
-
-    public String extract(JsonNode node) {
-        if (node == null || node.isNull() || node.isMissingNode()) {
-            return NONE;
-        }
-        StringBuilder sb = new StringBuilder();
-        write(node, sb, 0);
-        return sb.toString();
     }
 
     private void write(JsonNode node, StringBuilder sb, int depth) {

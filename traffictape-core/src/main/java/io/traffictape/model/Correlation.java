@@ -24,15 +24,13 @@ public record Correlation(
         String spanId,
         String correlationId
 ) {
-    public static Correlation inbound(String exchangeId, String traceId, String spanId, String correlationId) {
-        return new Correlation(exchangeId, null, null, null, traceId, spanId, correlationId);
+    public static Correlation inbound(
+            String exchangeId, Integer outboundCount, String traceId, String spanId, String correlationId) {
+        return new Correlation(exchangeId, null, null, outboundCount, traceId, spanId, correlationId);
     }
 
-    public Correlation withOutboundCount(int count) {
-        return new Correlation(exchangeId, parentExchangeId, sequence, count, traceId, spanId, correlationId);
-    }
-
-    public Correlation asOutboundChild(int sequenceNumber) {
-        return new Correlation(null, exchangeId, sequenceNumber, null, traceId, spanId, correlationId);
+    public static Correlation outbound(
+            String parentExchangeId, Integer sequence, String traceId, String spanId, String correlationId) {
+        return new Correlation(null, parentExchangeId, sequence, null, traceId, spanId, correlationId);
     }
 }

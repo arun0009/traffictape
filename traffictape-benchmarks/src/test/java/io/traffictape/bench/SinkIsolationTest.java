@@ -23,12 +23,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * The central design claim: writing the corpus never happens on the request thread. A sink slow
- * enough to dominate any synchronous path proves it — if the sink were on the request path, the
- * requests could not finish in less than the sink's own cost.
- *
- * <p>Unlike a latency budget this is a structural property, so the margin can be enormous and the
- * test still fails the moment the hand-off becomes synchronous.
+ * Writing never happens on the request thread. A sink slow enough to dominate any
+ * synchronous path proves it: if the sink were on the request path, requests could not
+ * finish in less than the sink's own cost.
  */
 @SpringBootTest(classes = SinkIsolationTest.App.class)
 @AutoConfigureMockMvc

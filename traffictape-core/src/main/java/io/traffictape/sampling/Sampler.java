@@ -1,13 +1,9 @@
 package io.traffictape.sampling;
 
 /**
- * Decides whether a representative example should be retained for a scenario.
- * {@link #shouldCapture} may reserve a slot; {@link #recordCaptured} confirms
- * it after a successful enqueue. The default sampler reserves atomically in
- * {@code shouldCapture} so concurrent requests cannot exceed the budget.
- *
- * <p>To replace: implement this and expose a {@code @Bean Sampler}. The default
- * backs off via {@code @ConditionalOnMissingBean}.
+ * Whether to keep another example for this scenario.
+ * Default: {@link #shouldCapture} takes a slot atomically; {@link #recordCaptured} is for
+ * custom samplers that count only after a successful enqueue.
  */
 public interface Sampler {
 

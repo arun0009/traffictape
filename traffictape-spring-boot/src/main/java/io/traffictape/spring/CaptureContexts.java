@@ -18,9 +18,8 @@ public final class CaptureContexts {
      */
     private static final ThreadLocal<Integer> SPRING_OUTBOUND = new ThreadLocal<>();
     /**
-     * The inbound request was excluded from the corpus, so the outbound calls it causes must be
-     * excluded too. Recording them anyway would leave dependencies with no parent request, which
-     * read as real fan-out.
+     * The inbound request was excluded, so outbound calls it causes must be excluded too.
+     * Otherwise you get stubs with no parent request.
      */
     private static final ThreadLocal<Boolean> SUPPRESSED = new ThreadLocal<>();
 

@@ -24,8 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Servlet adapter: observes inbound HTTP and publishes {@link io.traffictape.model.HttpTransaction}s.
- * Fail-open: wrapping or capture errors never prevent the application from handling the request.
+ * Servlet adapter: observes inbound HTTP. Wrapping or capture errors never block the request.
  */
 public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
 
@@ -42,8 +41,7 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         if (isExcludedTraffic(request)) {
-            // Suppress for the whole exchange, not just this request: the outbound calls it makes
-            // must stay out of the corpus too. Nothing is wrapped, so excluded traffic costs nothing.
+            // Outbound calls from this request stay out too. Nothing is wrapped.
             CaptureContexts.suppress();
             try {
                 chain.doFilter(request, response);
@@ -53,11 +51,11 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
             return;
         }
 
-        HttpServletRequest req = request;
-        HttpServletResponse res = response;
         ExchangeContext ctx = null;
         BoundedRequestWrapper requestWrapper = null;
         TeeResponseWrapper responseWrapper = null;
+        HttpServletRequest req = request;
+        HttpServletResponse res = response;
         long start = System.nanoTime();
         try {
             ctx = ExchangeContext.open(firstHeaders(request));
@@ -70,10 +68,10 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
             responseWrapper = new TeeResponseWrapper(response, properties.getMaxResponseBytes());
             res = responseWrapper;
         } catch (Throwable ignored) {
+            requestWrapper = null;
+            responseWrapper = null;
             req = request;
             res = response;
-            requestWrapper = null;
-            responseWrapper = res instanceof TeeResponseWrapper t ? t : null;
         }
 
         try {
@@ -85,7 +83,6 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
                 }
                 record(request, req, res, requestWrapper, responseWrapper, ctx, start);
             } catch (Throwable ignored) {
-                // capture must never fail the request
             } finally {
                 CaptureContexts.clear();
             }
@@ -110,7 +107,7 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
                 .method(method)
                 .path(path)
                 .route(route)
-                .query(query(original))
+                .query(ObservedExchange.parseQuery(original.getQueryString()))
                 .requestHeaders(headers(original))
                 .responseHeaders(responseHeaders(usedResponse))
                 .requestContentType(original.getContentType())
@@ -178,21 +175,6 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
         Map<String, List<String>> out = new LinkedHashMap<>();
         for (String name : response.getHeaderNames()) {
             out.put(name, List.copyOf(response.getHeaders(name)));
-        }
-        return out;
-    }
-
-    private static Map<String, List<String>> query(HttpServletRequest request) {
-        Map<String, List<String>> out = new LinkedHashMap<>();
-        String raw = request.getQueryString();
-        if (raw == null || raw.isEmpty()) {
-            return out;
-        }
-        for (String part : raw.split("&")) {
-            int eq = part.indexOf('=');
-            String name = eq < 0 ? part : part.substring(0, eq);
-            String value = eq < 0 ? "" : part.substring(eq + 1);
-            out.computeIfAbsent(name, k -> new java.util.ArrayList<>()).add(value);
         }
         return out;
     }

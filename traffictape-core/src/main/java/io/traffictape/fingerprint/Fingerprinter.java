@@ -13,13 +13,8 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
- * Pluggable fingerprinting. Default never includes literal values.
- *
- * <p>Endpoint identity: direction, method, normalized route, query parameter names.
- * Scenario identity: endpoint + request body shape + response characteristic.
- *
- * <p>To replace: implement this and expose a {@code @Bean Fingerprinter}. The default
- * backs off via {@code @ConditionalOnMissingBean}.
+ * Endpoint = method + route + query names. Scenario = endpoint + request shape + status.
+ * Default hashes those; it does not hash values.
  */
 public interface Fingerprinter {
 

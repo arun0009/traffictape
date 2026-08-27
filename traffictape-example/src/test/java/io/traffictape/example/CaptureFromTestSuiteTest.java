@@ -32,11 +32,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The whole loop against an existing test suite: drive the application over HTTP, let capture write
- * a corpus, then generate mocks from it — no deployment, no waiting for QA traffic.
- *
- * <p>This is the documented on-ramp in {@code docs/capture-from-tests.md}. It runs in the normal
- * build, so the workflow cannot silently rot.
+ * Drive the example app over HTTP, record it, generate mocks. Matches {@code docs/capture-from-tests.md}.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -88,9 +84,8 @@ class CaptureFromTestSuiteTest {
         send("PATCH", "/widgets/1", "{\"status\":\"ACTIVE\"}");
         send("PATCH", "/widgets/1", "{\"owner\":\"team-a\"}");
 
-        // Closing the worker drains the queue and closes the sink, which is what makes the corpus
-        // readable here and now. A normal suite does not need this: the JVM exiting at the end of
-        // `mvn test` shuts the context down and drains it the same way.
+        // Closing the worker drains the queue and closes the sink so the files are complete here.
+        // A normal suite does not need this: JVM exit at the end of `mvn test` does the same.
         worker.close();
 
         assertThat(CORPUS.resolve("metadata.json")).exists();

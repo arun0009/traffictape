@@ -17,8 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * The other half of readiness: with the plateau window collapsed, a corpus that is missing nothing
- * reports ready. Kept separate because the plateau is a property of the context.
+ * When the plateau window is 1ms, an exchange with a body reports ready.
  */
 @SpringBootTest(
         classes = TrafficTapeEndpointReadyTest.App.class,

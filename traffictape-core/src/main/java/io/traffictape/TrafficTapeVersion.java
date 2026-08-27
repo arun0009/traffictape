@@ -5,8 +5,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * The recorder version written into corpus metadata. Read once from a build-filtered resource so
- * the corpus never claims a version the artifact does not have.
+ * Recorder version written into event metadata. Read once from a build-filtered resource.
  */
 public final class TrafficTapeVersion {
 

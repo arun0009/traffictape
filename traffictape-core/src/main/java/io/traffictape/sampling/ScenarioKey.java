@@ -1,19 +1,15 @@
 package io.traffictape.sampling;
 
 /**
- * Scenario identity used by the sampler. Not just an endpoint: Claude needs to
- * tell apart request-shape and response variants of the same route.
+ * Sampler key: route + request shape + response, so {@code PATCH {status}} and
+ * {@code PATCH {owner}} do not share a budget, and a rare 404 is not starved by 200s.
  *
  * <pre>
  *   GET /accounts/{id} + none + 200
- *   GET /accounts/{id} + none + 200:empty
  *   GET /accounts/{id} + none + 404
  *   PATCH /assets/{id} + {status:string} + 200
  *   PATCH /assets/{id} + {owner:string} + 200
  * </pre>
- *
- * Status-class quotas are not hard-wired. Distinct response characteristics
- * are distinct keys, so a rare 404 is not drowned by a 200 flood.
  */
 public record ScenarioKey(
         String endpointFingerprint,

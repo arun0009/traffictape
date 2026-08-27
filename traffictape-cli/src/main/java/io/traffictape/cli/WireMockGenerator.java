@@ -13,8 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Turns outbound scenarios into WireMock stub mappings — the calls the recorded application made,
- * which are the ones a hermetic test needs to stub out.
+ * Turns outbound scenarios into WireMock stub mappings — the calls the recorded application made.
  */
 final class WireMockGenerator {
 

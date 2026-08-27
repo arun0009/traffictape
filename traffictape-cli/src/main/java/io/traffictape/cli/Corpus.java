@@ -14,11 +14,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A corpus reduced to one representative example per scenario fingerprint, plus the inbound to
- * outbound dependency graph rebuilt from {@code parentExchangeId}.
+ * Recorded events reduced to one example per scenario, plus the inbound-to-outbound
+ * graph rebuilt from {@code parentExchangeId}.
  *
- * <p>Deduplication is what makes a multi-instance corpus usable: the sampler budget is per JVM, so
- * four tasks capture the same scenario up to four times.
+ * <p>The sampler budget is per JVM, so four tasks can record the same scenario four times;
+ * generate keeps one.
  */
 final class Corpus {
 
@@ -94,7 +94,7 @@ final class Corpus {
         return tx.correlation().sequence();
     }
 
-    /** Falls back to the label, then to the route, so a corpus without fingerprints still works. */
+    /** Falls back to the label, then to the route, if the event has no scenario id. */
     static String scenarioKey(HttpTransaction tx) {
         String id = tx.scenarioFingerprintId();
         if (id != null) {

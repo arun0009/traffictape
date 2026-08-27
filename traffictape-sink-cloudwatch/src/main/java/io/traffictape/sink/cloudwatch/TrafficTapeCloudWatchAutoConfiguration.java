@@ -45,7 +45,7 @@ class TrafficTapeCloudWatchAutoConfiguration {
             CloudWatchLogsClient client,
             TrafficTapeCloudWatchProperties properties) {
         String stream = StreamName.resolve(properties);
-        log.info("TrafficTape corpus → cloudwatch://{}/{}", properties.getLogGroup(), stream);
+        log.info("TrafficTape writing to cloudwatch://{}/{}", properties.getLogGroup(), stream);
         return new CloudWatchCaptureSink(client, properties.getLogGroup().trim(), stream);
     }
 }

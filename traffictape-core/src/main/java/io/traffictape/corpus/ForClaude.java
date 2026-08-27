@@ -1,12 +1,12 @@
 package io.traffictape.corpus;
 
-/** Brief dropped in the corpus so Claude knows what to read first. */
+/** Read-this-first note written next to the recorded events. */
 public final class ForClaude {
 
     public static final String FILENAME = "FOR_CLAUDE.md";
 
     public static final String TEXT = """
-            # TrafficTape corpus — read this first
+            # TrafficTape — read this first
 
             Observed QA HTTP, not a spec and not generated tests.
 
