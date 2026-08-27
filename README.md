@@ -8,7 +8,7 @@
 [![Java](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://adoptium.net)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
 
-**Record real HTTP. Keep a corpus. Throw the recorder away.**
+**Record real HTTP. Keep the tape. Throw the recorder away.**
 
 A privacy-aware HTTP flight recorder for Spring Boot. Drop it into QA, capture representative inbound and outbound traffic, copy the files, remove the dependency.
 
