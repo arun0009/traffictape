@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PathNormalizerTest {
 
-    private final PathNormalizer normalizer = new PathNormalizer();
+    private final PathNormalizer normalizer = new DefaultPathNormalizer();
 
     @Test
     void numericIdsBecomePlaceholder() {
@@ -31,5 +31,19 @@ class PathNormalizerTest {
     void samePatternForDifferentIds() {
         assertThat(normalizer.normalize("/accounts/123"))
                 .isEqualTo(normalizer.normalize("/accounts/456"));
+    }
+
+    @Test
+    void anAddedShapeComposesWithTheBuiltInOnes() {
+        PathNormalizer extended = new DefaultPathNormalizer() {
+            @Override
+            protected String normalizeSegment(String segment) {
+                return segment.startsWith("acct_") ? "{account}" : super.normalizeSegment(segment);
+            }
+        };
+
+        assertThat(extended.normalize("/accounts/acct_9f8e/transactions/42"))
+                .as("the custom shape must not cost the built-in ones")
+                .isEqualTo("/accounts/{account}/transactions/{id}");
     }
 }

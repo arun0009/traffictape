@@ -31,7 +31,6 @@ public final class ObjectStoreCaptureSink implements CaptureSink {
     private final Map<String, Object> metadataTemplate;
     private final AtomicInteger sequence = new AtomicInteger();
     private final Instant captureStart = Instant.now();
-    private int totalWritten;
 
     public ObjectStoreCaptureSink(ObjectPutter putter, Map<String, Object> metadataTemplate) {
         this.putter = putter;
@@ -50,7 +49,6 @@ public final class ObjectStoreCaptureSink implements CaptureSink {
                     "events/events-%06d.jsonl.gz".formatted(sequence.incrementAndGet()),
                     gzipJsonl(batch),
                     "application/gzip");
-            totalWritten += batch.size();
             writeIndex(batch.statistics());
         } catch (IOException e) {
             log.debug("TrafficTape object-store write failed", e);
@@ -66,10 +64,6 @@ public final class ObjectStoreCaptureSink implements CaptureSink {
     @Override
     public synchronized void close() {
         writeMetadata(null);
-    }
-
-    public int totalWritten() {
-        return totalWritten;
     }
 
     private byte[] gzipJsonl(CaptureBatch batch) throws IOException {

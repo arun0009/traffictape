@@ -4,8 +4,10 @@ import io.traffictape.capture.ObservedExchange;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -22,6 +24,7 @@ public final class CapturePolicy {
     private final Set<String> includeHeaders;
     private final Set<String> excludeJsonFields;
     private final Set<String> includeJsonFields;
+    private final Map<String, List<String>> excludeRequestHeaders;
 
     private CapturePolicy(Builder builder) {
         this.includeMethods = upper(builder.includeMethods);
@@ -32,6 +35,7 @@ public final class CapturePolicy {
         this.includeHeaders = lowerSet(builder.includeHeaders);
         this.excludeJsonFields = lowerSet(builder.excludeJsonFields);
         this.includeJsonFields = lowerSet(builder.includeJsonFields);
+        this.excludeRequestHeaders = lowerKeys(builder.excludeRequestHeaders);
     }
 
     public static Builder builder() {
@@ -59,7 +63,49 @@ public final class CapturePolicy {
         String path = observed.path() == null ? "/" : observed.path();
         return acceptsMethod(observed.method())
                 && acceptsRoute(path)
-                && acceptsDestination(observed.destination());
+                && acceptsDestination(observed.destination())
+                && acceptsRequestHeaders(observed.requestHeaders());
+    }
+
+    /**
+     * Drops an entire exchange when a request header marks it as traffic you do not want in the
+     * corpus — a smoke-test harness, a synthetic monitor, a load generator. Distinct from
+     * {@link #captureHeader(String)}, which decides which headers of a *recorded* exchange to store.
+     *
+     * <p>A pattern of {@code *} matches any value, so a header can be excluded on presence alone.
+     */
+    public boolean acceptsRequestHeaders(Map<String, List<String>> headers) {
+        if (excludeRequestHeaders.isEmpty() || headers == null || headers.isEmpty()) {
+            return true;
+        }
+        for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+            if (header.getKey() == null) {
+                continue;
+            }
+            List<String> patterns = excludeRequestHeaders.get(header.getKey().toLowerCase(Locale.ROOT));
+            if (patterns == null) {
+                continue;
+            }
+            List<String> values = header.getValue();
+            if (values == null || values.isEmpty()) {
+                if (patterns.contains("*")) {
+                    return false;
+                }
+                continue;
+            }
+            for (String value : values) {
+                for (String pattern : patterns) {
+                    if (PathGlob.matchesValue(pattern, value)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public Map<String, List<String>> excludeRequestHeaders() {
+        return excludeRequestHeaders;
     }
 
     public boolean acceptsMethod(String method) {
@@ -171,6 +217,27 @@ public final class CapturePolicy {
         return List.copyOf(out);
     }
 
+    private static Map<String, List<String>> lowerKeys(Map<String, ? extends Collection<String>> in) {
+        if (in == null || in.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, List<String>> out = new LinkedHashMap<>();
+        in.forEach((name, patterns) -> {
+            if (name == null || patterns == null) {
+                return;
+            }
+            List<String> kept = new ArrayList<>();
+            for (String pattern : patterns) {
+                if (pattern != null && !pattern.isBlank()) {
+                    kept.add(pattern);
+                }
+            }
+            // An empty list means "exclude whenever this header is present at all".
+            out.put(name.toLowerCase(Locale.ROOT), kept.isEmpty() ? List.of("*") : List.copyOf(kept));
+        });
+        return Map.copyOf(out);
+    }
+
     private static Set<String> lowerSet(Collection<String> in) {
         Set<String> out = new TreeSet<>();
         for (String s : in) {
@@ -190,6 +257,7 @@ public final class CapturePolicy {
         private Collection<String> includeHeaders = List.of();
         private Collection<String> excludeJsonFields = List.of();
         private Collection<String> includeJsonFields = List.of();
+        private Map<String, ? extends Collection<String>> excludeRequestHeaders = Map.of();
 
         public Builder includeMethods(Collection<String> v) {
             this.includeMethods = v;
@@ -228,6 +296,11 @@ public final class CapturePolicy {
 
         public Builder includeJsonFields(Collection<String> v) {
             this.includeJsonFields = v;
+            return this;
+        }
+
+        public Builder excludeRequestHeaders(Map<String, ? extends Collection<String>> v) {
+            this.excludeRequestHeaders = v == null ? Map.of() : v;
             return this;
         }
 

@@ -9,8 +9,6 @@ import io.traffictape.capture.CaptureMetrics;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
 public final class MicrometerCaptureMetrics implements CaptureMetrics {
 
     private final Counter observed;
@@ -23,7 +21,6 @@ public final class MicrometerCaptureMetrics implements CaptureMetrics {
     private final AtomicInteger queueSize = new AtomicInteger();
     private final AtomicInteger endpoints = new AtomicInteger();
     private final AtomicInteger scenarios = new AtomicInteger();
-    private final AtomicLong workerLag = new AtomicLong();
     private final AtomicBoolean enabled = new AtomicBoolean();
 
     public MicrometerCaptureMetrics(MeterRegistry registry) {
@@ -37,7 +34,6 @@ public final class MicrometerCaptureMetrics implements CaptureMetrics {
         Gauge.builder("traffictape.queue.size", queueSize, AtomicInteger::get).register(registry);
         Gauge.builder("traffictape.fingerprints", endpoints, AtomicInteger::get).register(registry);
         Gauge.builder("traffictape.scenarios", scenarios, AtomicInteger::get).register(registry);
-        Gauge.builder("traffictape.worker.lag", workerLag, AtomicLong::get).register(registry);
         Gauge.builder("traffictape.enabled", enabled, v -> v.get() ? 1 : 0).register(registry);
     }
 
@@ -80,11 +76,6 @@ public final class MicrometerCaptureMetrics implements CaptureMetrics {
     @Override
     public void recordCaptureLatencyNanos(long nanos) {
         captureLatency.record(nanos, TimeUnit.NANOSECONDS);
-    }
-
-    @Override
-    public void recordWorkerLagMs(long millis) {
-        workerLag.set(millis);
     }
 
     @Override

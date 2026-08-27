@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class RedactorTest {
 
-    private final Redactor redactor = new Redactor(CapturePolicy.safeDefaults());
+    private final Redactor redactor = new DefaultRedactor(CapturePolicy.safeDefaults());
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
@@ -66,8 +66,100 @@ class RedactorTest {
     }
 
     @Test
+    void redactsInsideArraysOfObjects() throws Exception {
+        JsonNode out = redactor.json(mapper.readTree(
+                "{\"users\":[{\"name\":\"a\",\"password\":\"p1\"},{\"name\":\"b\",\"cvv\":\"123\"}]}"));
+        assertThat(out.toString()).doesNotContain("p1").doesNotContain("123");
+        assertThat(out.get("users").get(0).get("name").asText()).isEqualTo("a");
+        assertThat(out.get("users").get(1).get("cvv").asText()).isEqualTo("[REDACTED]");
+    }
+
+    @Test
+    void redactsInsideNestedArrays() throws Exception {
+        JsonNode out = redactor.json(mapper.readTree("{\"batches\":[[{\"token\":\"t1\"}]]}"));
+        assertThat(out.toString()).doesNotContain("t1");
+    }
+
+    @Test
+    void redactsRootLevelArray() throws Exception {
+        JsonNode out = redactor.json(mapper.readTree("[{\"password\":\"p1\"}]"));
+        assertThat(out.toString()).doesNotContain("p1");
+    }
+
+    @Test
+    void redactsNonStringSecretValues() throws Exception {
+        JsonNode out = redactor.json(mapper.readTree("{\"cvv\":123,\"token\":{\"a\":\"b\"}}"));
+        assertThat(out.toString()).doesNotContain("123").doesNotContain("\"b\"");
+    }
+
+    @Test
+    void redactsXmlWithCdata() {
+        String out = redactor.text(
+                "<password><![CDATA[hunter2]]></password>", "application/xml");
+        assertThat(out).doesNotContain("hunter2");
+    }
+
+    @Test
+    void redactsXmlElementContainingChildElements() {
+        String out = redactor.text(
+                "<token><value>hunter2</value></token>", "application/xml");
+        assertThat(out).doesNotContain("hunter2");
+    }
+
+    @Test
+    void redactsSecretsCarriedInXmlAttributes() {
+        String out = redactor.text(
+                "<card cardNumber=\"4111111111111111\" cvv='123' brand=\"visa\"/>",
+                "application/xml");
+        assertThat(out).doesNotContain("4111111111111111").doesNotContain("123");
+        assertThat(out).as("non-sensitive attributes survive").contains("visa");
+    }
+
+    @Test
+    void redactsMultilineXmlElements() {
+        String out = redactor.text("<password>\n  hunter2\n</password>", "text/xml");
+        assertThat(out).doesNotContain("hunter2");
+    }
+
+    @Test
+    void redactsXmlWhenContentTypeCarriesCharset() {
+        String out = redactor.text(
+                "<password>hunter2</password>", "application/soap+xml; charset=utf-8");
+        assertThat(out).doesNotContain("hunter2");
+    }
+
+    @Test
+    void redactsRepeatedAndTrailingFormFields() {
+        String out = redactor.text("password=a&password=b&token=c", "application/x-www-form-urlencoded");
+        assertThat(out).isEqualTo("password=[REDACTED]&password=[REDACTED]&token=[REDACTED]");
+    }
+
+    @Test
+    void redactsFormFieldWithEmptyValue() {
+        String out = redactor.text("password=&keep=1", "application/x-www-form-urlencoded");
+        assertThat(out).isEqualTo("password=[REDACTED]&keep=1");
+    }
+
+    @Test
+    void aFieldNameIsMatchedRegardlessOfCase() throws Exception {
+        JsonNode out = redactor.json(mapper.readTree("{\"PassWord\":\"hunter2\"}"));
+        assertThat(out.get("PassWord").asText()).isEqualTo("[REDACTED]");
+        assertThat(redactor.headers(Map.of("AUTHORIZATION", List.of("Bearer x"))).get("AUTHORIZATION"))
+                .containsExactly("[REDACTED]");
+        assertThat(redactor.text("PASSWORD=hunter2", "application/x-www-form-urlencoded"))
+                .doesNotContain("hunter2");
+    }
+
+    @Test
+    void aDenylistedNameInsideAValueIsNotTreatedAsAField() {
+        String out = redactor.text("note=my password is safe&keep=1", "application/x-www-form-urlencoded");
+        assertThat(out).as("only field names drive redaction, not value text").isEqualTo(
+                "note=my password is safe&keep=1");
+    }
+
+    @Test
     void disabledRedactionCapturesVerbatim() throws Exception {
-        Redactor none = new Redactor(CapturePolicy.builder().build());
+        Redactor none = new DefaultRedactor(CapturePolicy.builder().build());
         Map<String, List<String>> headers = none.headers(Map.of("Authorization", List.of("Bearer secret")));
         assertThat(headers.get("Authorization")).containsExactly("Bearer secret");
         assertThat(none.json(mapper.readTree("{\"password\":\"hunter2\"}")).get("password").asText())

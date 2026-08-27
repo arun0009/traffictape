@@ -13,11 +13,15 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -35,6 +39,7 @@ import java.util.zip.GZIPOutputStream;
 public final class FileCaptureSink implements CaptureSink {
 
     private static final Logger log = LoggerFactory.getLogger(FileCaptureSink.class);
+    private static final Pattern EVENT_FILE = Pattern.compile("events-(\\d+)\\.jsonl\\.gz");
 
     private final Path directory;
     private final ObjectMapper mapper;
@@ -46,7 +51,6 @@ public final class FileCaptureSink implements CaptureSink {
     private long bytesInFile;
     private final int rotateAfterEvents;
     private final long rotateAfterBytes;
-    private int totalWritten;
 
     private final boolean disabled;
 
@@ -63,12 +67,31 @@ public final class FileCaptureSink implements CaptureSink {
         boolean ok = false;
         try {
             Files.createDirectories(directory.resolve("events"));
+            sequence.set(highestExistingSequence(directory.resolve("events")));
             writeIndex(null);
             ok = true;
         } catch (IOException e) {
             log.warn("TrafficTape file sink disabled; cannot write {}", directory, e);
         }
         this.disabled = !ok;
+    }
+
+    /**
+     * Resumes numbering after any events already in the directory. Without this, a second sink on
+     * the same directory — an application restart, or another Spring context in the same test JVM —
+     * would start again at {@code events-000001} and overwrite the earlier run.
+     */
+    private static int highestExistingSequence(Path events) throws IOException {
+        int highest = 0;
+        try (java.util.stream.Stream<Path> files = Files.list(events)) {
+            for (Path file : files.toList()) {
+                Matcher matcher = EVENT_FILE.matcher(file.getFileName().toString());
+                if (matcher.matches()) {
+                    highest = Math.max(highest, Integer.parseInt(matcher.group(1)));
+                }
+            }
+        }
+        return highest;
     }
 
     @Override
@@ -88,7 +111,6 @@ public final class FileCaptureSink implements CaptureSink {
                 currentOut.write('\n');
                 eventsInFile++;
                 bytesInFile += line.length + 1;
-                totalWritten++;
                 if (eventsInFile >= rotateAfterEvents || bytesInFile >= rotateAfterBytes) {
                     rotate();
                     ensureStream();
@@ -131,17 +153,24 @@ public final class FileCaptureSink implements CaptureSink {
         return directory;
     }
 
-    public int totalWritten() {
-        return totalWritten;
-    }
-
     private void ensureStream() throws IOException {
         if (currentOut != null) {
             return;
         }
-        int n = sequence.incrementAndGet();
-        Path file = directory.resolve("events").resolve("events-%06d.jsonl.gz".formatted(n));
-        currentOut = new GZIPOutputStream(new BufferedOutputStream(Files.newOutputStream(file), 64 * 1024));
+        // CREATE_NEW rather than truncate: two JVMs sharing a directory (parallel Surefire forks,
+        // or a rolling restart on a shared volume) can pick the same number, and the loser must
+        // take the next one instead of erasing the winner's events.
+        OutputStream raw = null;
+        while (raw == null) {
+            int n = sequence.incrementAndGet();
+            Path file = directory.resolve("events").resolve("events-%06d.jsonl.gz".formatted(n));
+            try {
+                raw = Files.newOutputStream(file, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+            } catch (FileAlreadyExistsException taken) {
+                log.debug("TrafficTape events file {} already exists; trying the next number", file);
+            }
+        }
+        currentOut = new GZIPOutputStream(new BufferedOutputStream(raw, 64 * 1024));
         eventsInFile = 0;
         bytesInFile = 0;
     }

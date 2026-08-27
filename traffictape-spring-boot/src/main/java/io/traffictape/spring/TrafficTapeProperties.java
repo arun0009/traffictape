@@ -19,15 +19,21 @@ public class TrafficTapeProperties {
     private int maxExamplesPerScenario = 50;
     /** captureReady after no new unique scenario for this long. Default 6h. */
     private Duration plateauAfter = Duration.ofHours(6);
+    /** Request body prefix kept per exchange. Larger bodies are captured truncated. */
     private int maxRequestBytes = 1024 * 1024;
+    /** Response body prefix kept per exchange. Larger bodies are captured truncated. */
     private int maxResponseBytes = 1024 * 1024;
+    /** Hand-off queue depth. When full, exchanges are dropped rather than blocking the request. */
     private int queueSize = 100_000;
+    /** Cap on distinct fingerprints tracked, bounding memory on high-cardinality traffic. */
     private int maxUniqueFingerprints = 50_000;
+    /** How long shutdown waits for the writer to drain before giving up. */
     private Duration shutdownDrain = Duration.ofSeconds(5);
     private final Flush flush = new Flush();
     private final Output output = new Output();
     private final Capture capture = new Capture();
     private final Redaction redaction = new Redaction();
+    /** Maps an outbound host[:port] to a service name recorded on the event. */
     private Map<String, String> destinations = new LinkedHashMap<>();
 
     public boolean isEnabled() {
@@ -126,8 +132,11 @@ public class TrafficTapeProperties {
     }
 
     public static class Flush {
+        /** Longest a captured exchange waits before the writer hands it to the sink. */
         private Duration interval = Duration.ofSeconds(30);
+        /** Flush once this many exchanges are batched, without waiting for the interval. */
         private int maxEvents = 1000;
+        /** Flush once the batch reaches this many bytes, without waiting for the interval. */
         private long maxBytes = 50L * 1024 * 1024;
 
         public Duration getInterval() {
@@ -156,8 +165,16 @@ public class TrafficTapeProperties {
     }
 
     public static class Output {
+        /** Corpus directory. Point this at a disposable path; the corpus is not meant to persist. */
         private String directory = "/tmp/traffic-tape";
-        private String compression = "gzip";
+
+        /**
+         * When to start a new events file. Independent of {@code flush.*}, which only controls how
+         * the writer batches: flushing eagerly should not mean one file per request.
+         */
+        private int rotateAfterEvents = 1000;
+        /** Start a new events file once the current one reaches this many bytes. */
+        private long rotateAfterBytes = 50L * 1024 * 1024;
 
         public String getDirectory() {
             return directory;
@@ -167,12 +184,20 @@ public class TrafficTapeProperties {
             this.directory = directory;
         }
 
-        public String getCompression() {
-            return compression;
+        public int getRotateAfterEvents() {
+            return rotateAfterEvents;
         }
 
-        public void setCompression(String compression) {
-            this.compression = compression;
+        public void setRotateAfterEvents(int rotateAfterEvents) {
+            this.rotateAfterEvents = rotateAfterEvents;
+        }
+
+        public long getRotateAfterBytes() {
+            return rotateAfterBytes;
+        }
+
+        public void setRotateAfterBytes(long rotateAfterBytes) {
+            this.rotateAfterBytes = rotateAfterBytes;
         }
     }
 
@@ -204,8 +229,11 @@ public class TrafficTapeProperties {
     }
 
     public static class Include {
+        /** Methods to record. Anything else is ignored. */
         private List<String> methods = new ArrayList<>(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
+        /** Allow-list of headers to store. Empty means all except the redaction denylist. */
         private List<String> headers = new ArrayList<>();
+        /** Allow-list of JSON fields to store. Empty means all except the redaction denylist. */
         private List<String> jsonFields = new ArrayList<>();
 
         public List<String> getMethods() {
@@ -234,9 +262,20 @@ public class TrafficTapeProperties {
     }
 
     public static class Exclude {
+        /** Path globs never recorded, in either direction. */
         private List<String> routes = new ArrayList<>(List.of("/health", "/actuator/**"));
+        /** Content types whose bodies are never captured. */
         private List<String> contentTypes = new ArrayList<>(List.of("multipart/form-data", "application/octet-stream"));
+        /** Outbound host[:port] globs never recorded. */
         private List<String> destinations = new ArrayList<>();
+
+        /**
+         * Drops the whole exchange when a request carries one of these headers — synthetic traffic
+         * such as a smoke-test harness or an uptime monitor. Values are globs; an empty list or
+         * {@code "*"} matches on presence alone. Not to be confused with {@code include.headers},
+         * which selects the headers stored on exchanges that are recorded.
+         */
+        private Map<String, List<String>> requestHeaders = new LinkedHashMap<>();
 
         public List<String> getRoutes() {
             return routes;
@@ -261,12 +300,27 @@ public class TrafficTapeProperties {
         public void setDestinations(List<String> destinations) {
             this.destinations = destinations;
         }
+
+        public Map<String, List<String>> getRequestHeaders() {
+            return requestHeaders;
+        }
+
+        public void setRequestHeaders(Map<String, List<String>> requestHeaders) {
+            this.requestHeaders = requestHeaders;
+        }
     }
 
     public static class Redaction {
+        /** Turning this off writes credentials and cookies to the corpus verbatim. Logs a WARN. */
         private boolean enabled = true;
+        /** Headers replaced with [REDACTED]. Setting this replaces the defaults; list them again to keep them. */
         private List<String> headers = new ArrayList<>(List.of(
                 "Authorization", "Cookie", "Set-Cookie", "Proxy-Authorization", "X-Api-Key", "Api-Key"));
+        /**
+         * Names redacted in JSON fields at any depth, XML elements and attributes, and
+         * form-urlencoded pairs. Matched case-insensitively on the name only, so a secret in a
+         * field that is not listed is stored verbatim. Setting this replaces the defaults.
+         */
         private List<String> jsonFields = new ArrayList<>(List.of(
                 "password", "token", "accessToken", "refreshToken", "secret",
                 "clientSecret", "ssn", "creditCard", "cardNumber", "cvv"));

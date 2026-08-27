@@ -36,9 +36,6 @@ public interface CaptureMetrics {
     default void recordCaptureLatencyNanos(long nanos) {
     }
 
-    default void recordWorkerLagMs(long millis) {
-    }
-
     default void recordError() {
     }
 

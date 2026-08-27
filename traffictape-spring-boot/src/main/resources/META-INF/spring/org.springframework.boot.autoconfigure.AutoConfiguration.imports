@@ -1,2 +1,3 @@
 io.traffictape.spring.metrics.TrafficTapeMicrometerAutoConfiguration
 io.traffictape.spring.TrafficTapeAutoConfiguration
+io.traffictape.spring.actuate.TrafficTapeEndpointAutoConfiguration

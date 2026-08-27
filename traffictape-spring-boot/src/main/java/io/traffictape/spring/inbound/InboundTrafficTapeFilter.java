@@ -41,6 +41,18 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
+        if (isExcludedTraffic(request)) {
+            // Suppress for the whole exchange, not just this request: the outbound calls it makes
+            // must stay out of the corpus too. Nothing is wrapped, so excluded traffic costs nothing.
+            CaptureContexts.suppress();
+            try {
+                chain.doFilter(request, response);
+            } finally {
+                CaptureContexts.clear();
+            }
+            return;
+        }
+
         HttpServletRequest req = request;
         HttpServletResponse res = response;
         ExchangeContext ctx = null;
@@ -117,6 +129,14 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
                     .responseDeclaredSize(responseWrapper.declaredSize());
         }
         engine.record(observed.build());
+    }
+
+    private boolean isExcludedTraffic(HttpServletRequest request) {
+        try {
+            return !engine.policy().acceptsRequestHeaders(headers(request));
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private boolean shouldWrapRequest(HttpServletRequest request) {

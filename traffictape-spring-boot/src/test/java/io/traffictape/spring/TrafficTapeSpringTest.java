@@ -108,7 +108,8 @@ class TrafficTapeSpringTest {
     @Test
     void skipsActuator() throws Exception {
         long before = engine.statistics().observed();
-        mvc.perform(get("/actuator/health")).andExpect(status().isNotFound());
+        // Status is beside the point and depends on which endpoints are exposed; route exclusion is not.
+        mvc.perform(get("/actuator/health"));
         assertThat(engine.statistics().observed()).isEqualTo(before);
     }
 

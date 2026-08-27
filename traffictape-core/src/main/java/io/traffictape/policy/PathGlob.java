@@ -8,6 +8,23 @@ public final class PathGlob {
     private PathGlob() {
     }
 
+    /**
+     * Globs an arbitrary value, case-insensitively and without the path handling in
+     * {@link #matches} — a header value such as {@code kube-probe/1.28} is not a path.
+     */
+    public static boolean matchesValue(String pattern, String value) {
+        if (pattern == null) {
+            return false;
+        }
+        if ("*".equals(pattern)) {
+            return true;
+        }
+        if (value == null) {
+            return false;
+        }
+        return glob(pattern.toLowerCase(java.util.Locale.ROOT), value.toLowerCase(java.util.Locale.ROOT));
+    }
+
     public static boolean matches(String pattern, String path) {
         if (pattern == null || path == null) {
             return false;

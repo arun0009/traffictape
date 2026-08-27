@@ -4,6 +4,7 @@ import io.traffictape.capture.CaptureEngine;
 import io.traffictape.spring.TrafficTapeProperties;
 import io.traffictape.spring.outbound.OutboundCaptureInterceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,7 @@ import org.springframework.web.client.RestClient;
 public class RestClientCaptureConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean(name = "trafficTapeRestClientCustomizer")
     RestClientCustomizer trafficTapeRestClientCustomizer(CaptureEngine engine, TrafficTapeProperties properties) {
         OutboundCaptureInterceptor interceptor = new OutboundCaptureInterceptor(engine, properties);
         return builder -> builder.requestInterceptor(interceptor);

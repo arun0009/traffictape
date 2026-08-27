@@ -42,6 +42,9 @@ public final class OutboundCaptureInterceptor implements ClientHttpRequestInterc
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
             throws IOException {
+        if (CaptureContexts.suppressed()) {
+            return execution.execute(request, body);
+        }
         CaptureContexts.beginSpringOutbound();
         try {
             long start = System.nanoTime();

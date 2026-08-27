@@ -43,7 +43,7 @@ public final class OkHttpCaptureInterceptor implements Interceptor {
 
     @Override
     public Response intercept(Chain chain) throws IOException {
-        if (CaptureContexts.springOutboundActive()) {
+        if (CaptureContexts.springOutboundActive() || CaptureContexts.suppressed()) {
             return chain.proceed(chain.request());
         }
         Request original = chain.request();

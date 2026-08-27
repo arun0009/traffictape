@@ -10,7 +10,7 @@
 
     <artifactId>traffictape-benchmarks</artifactId>
     <name>traffictape-benchmarks</name>
-    <description>JMH benchmarks comparing capture disabled vs enabled</description>
+    <description>JMH benchmarks and tests asserting capture stays off the request thread</description>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>

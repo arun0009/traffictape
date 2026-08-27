@@ -5,6 +5,12 @@ spring:
 server:
   port: 8080
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: [health, traffictape]
+
 traffictape:
   enabled: true
   max-examples-per-scenario: 50
@@ -22,6 +28,9 @@ traffictape:
     exclude:
       routes: [/health, /actuator/**]
       content-types: [multipart/form-data, application/octet-stream]
+      request-headers:
+        X-Smoke-Test: ["*"]
+        User-Agent: ["kube-probe/*", "*synthetic-monitor*"]
   redaction:
     enabled: true
     headers: [Authorization, Cookie, Set-Cookie, Proxy-Authorization]

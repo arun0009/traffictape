@@ -11,8 +11,10 @@ import io.traffictape.capture.JsonSupport;
 import io.traffictape.fingerprint.DefaultFingerprinter;
 import io.traffictape.fingerprint.Fingerprinter;
 import io.traffictape.fingerprint.JsonShapeExtractor;
+import io.traffictape.fingerprint.DefaultPathNormalizer;
 import io.traffictape.fingerprint.PathNormalizer;
 import io.traffictape.policy.CapturePolicy;
+import io.traffictape.redaction.DefaultRedactor;
 import io.traffictape.redaction.Redactor;
 import io.traffictape.sampling.BoundedScenarioSampler;
 import io.traffictape.sampling.Sampler;
@@ -73,6 +75,7 @@ public class TrafficTapeAutoConfiguration {
                 .excludeRoutes(capture.getExclude().getRoutes())
                 .excludeContentTypes(capture.getExclude().getContentTypes())
                 .excludeDestinations(capture.getExclude().getDestinations())
+                .excludeRequestHeaders(capture.getExclude().getRequestHeaders())
                 .excludeHeaders(redact ? redaction.getHeaders() : List.of())
                 .includeHeaders(capture.getInclude().getHeaders())
                 .excludeJsonFields(redact ? redaction.getJsonFields() : List.of())
@@ -83,7 +86,7 @@ public class TrafficTapeAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     PathNormalizer trafficTapePathNormalizer() {
-        return new PathNormalizer();
+        return new DefaultPathNormalizer();
     }
 
     @Bean
@@ -101,7 +104,7 @@ public class TrafficTapeAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     Redactor trafficTapeRedactor(CapturePolicy policy) {
-        return new Redactor(policy);
+        return new DefaultRedactor(policy);
     }
 
     @Bean
@@ -176,8 +179,8 @@ public class TrafficTapeAutoConfiguration {
         return new FileCaptureSink(
                 Path.of(properties.getOutput().getDirectory()),
                 meta,
-                properties.getFlush().getMaxEvents(),
-                properties.getFlush().getMaxBytes()
+                properties.getOutput().getRotateAfterEvents(),
+                properties.getOutput().getRotateAfterBytes()
         );
     }
 
@@ -202,6 +205,7 @@ public class TrafficTapeAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = "trafficTapeInboundFilter")
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
     FilterRegistrationBean<InboundTrafficTapeFilter> trafficTapeInboundFilter(
             CaptureEngine engine,

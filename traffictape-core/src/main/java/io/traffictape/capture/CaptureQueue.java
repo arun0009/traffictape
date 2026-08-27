@@ -42,15 +42,7 @@ public final class CaptureQueue {
         return queue.size();
     }
 
-    public int remainingCapacity() {
-        return queue.remainingCapacity();
-    }
-
     public void stopAccepting() {
         accepting.set(false);
-    }
-
-    public boolean isAccepting() {
-        return accepting.get();
     }
 }

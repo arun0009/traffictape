@@ -7,6 +7,7 @@ import io.traffictape.model.Direction;
 import io.traffictape.spring.CaptureContexts;
 import io.traffictape.spring.TrafficTapeProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class WebClientCaptureConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean(name = "trafficTapeWebClientCustomizer")
     WebClientCustomizer trafficTapeWebClientCustomizer(CaptureEngine engine, TrafficTapeProperties properties) {
         WebClientCaptureFilter filter = new WebClientCaptureFilter(engine, properties);
         return builder -> builder.filter(filter);
@@ -62,6 +64,9 @@ final class WebClientCaptureFilter implements ExchangeFilterFunction {
         long start = System.nanoTime();
         return next.exchange(request)
                 .flatMap(response -> Mono.deferContextual(ctxView -> {
+                    if (ctxView.getOrDefault(CaptureContexts.REACTOR_SUPPRESSED_KEY, Boolean.FALSE)) {
+                        return Mono.just(response);
+                    }
                     ExchangeContext ctx = ctxView.getOrDefault(CaptureContexts.REACTOR_KEY, CaptureContexts.current());
                     Integer sequence = ctx == null ? null : ctx.nextOutboundSequence();
                     if (isStreaming(response)) {
@@ -79,8 +84,15 @@ final class WebClientCaptureFilter implements ExchangeFilterFunction {
                     return Mono.just(response.mutate().body(teed).build());
                 }))
                 .contextWrite(context -> {
+                    reactor.util.context.Context out = context;
                     ExchangeContext current = CaptureContexts.current();
-                    return current == null ? context : context.put(CaptureContexts.REACTOR_KEY, current);
+                    if (current != null) {
+                        out = out.put(CaptureContexts.REACTOR_KEY, current);
+                    }
+                    if (CaptureContexts.suppressed()) {
+                        out = out.put(CaptureContexts.REACTOR_SUPPRESSED_KEY, Boolean.TRUE);
+                    }
+                    return out;
                 });
     }
 

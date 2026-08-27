@@ -10,6 +10,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,7 @@ import java.util.List;
 public class OkHttpCaptureConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean(name = "trafficTapeOkHttpInterceptor")
     OkHttpCaptureInterceptor trafficTapeOkHttpInterceptor(
             CaptureEngine engine,
             TrafficTapeProperties properties) {
@@ -37,6 +39,7 @@ public class OkHttpCaptureConfiguration {
      * beans is created too early and causes a cycle.
      */
     @Bean
+    @ConditionalOnMissingBean(name = "trafficTapeOkHttpClientPostProcessor")
     static BeanPostProcessor trafficTapeOkHttpClientPostProcessor() {
         return new OkHttpClientCapturePostProcessor();
     }

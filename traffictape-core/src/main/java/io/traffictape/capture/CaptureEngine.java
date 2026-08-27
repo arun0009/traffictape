@@ -5,11 +5,13 @@ import io.traffictape.correlation.ExchangeContext;
 import io.traffictape.fingerprint.DefaultFingerprinter;
 import io.traffictape.fingerprint.Fingerprinter;
 import io.traffictape.fingerprint.JsonShapeExtractor;
+import io.traffictape.fingerprint.DefaultPathNormalizer;
 import io.traffictape.fingerprint.PathNormalizer;
 import io.traffictape.model.Direction;
 import io.traffictape.model.FingerprintPair;
 import io.traffictape.model.HttpTransaction;
 import io.traffictape.policy.CapturePolicy;
+import io.traffictape.redaction.DefaultRedactor;
 import io.traffictape.redaction.Redactor;
 import io.traffictape.sampling.BoundedScenarioSampler;
 import io.traffictape.sampling.Sampler;
@@ -208,7 +210,7 @@ public final class CaptureEngine {
      */
     public static final class Builder {
         private CapturePolicy policy = CapturePolicy.safeDefaults();
-        private PathNormalizer pathNormalizer = new PathNormalizer();
+        private PathNormalizer pathNormalizer = new DefaultPathNormalizer();
         private Fingerprinter fingerprinter = new DefaultFingerprinter();
         private JsonShapeExtractor shapeExtractor;
         private Sampler sampler;
@@ -293,7 +295,7 @@ public final class CaptureEngine {
                 statistics = new StatisticsRegistry(maxUniqueFingerprints, maxExamplesPerScenario, plateauAfter);
             }
             if (redactor == null) {
-                redactor = new Redactor(policy);
+                redactor = new DefaultRedactor(policy);
             }
             var mapper = JsonSupport.mapper();
             if (shapeExtractor == null) {

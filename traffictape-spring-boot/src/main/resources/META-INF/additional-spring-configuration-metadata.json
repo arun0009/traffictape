@@ -1,0 +1,107 @@
+{
+  "properties": [
+    {
+      "name": "traffictape.capture.include.methods",
+      "type": "java.util.List<java.lang.String>",
+      "defaultValue": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    },
+    {
+      "name": "traffictape.capture.exclude.routes",
+      "type": "java.util.List<java.lang.String>",
+      "defaultValue": ["/health", "/actuator/**"]
+    },
+    {
+      "name": "traffictape.capture.exclude.content-types",
+      "type": "java.util.List<java.lang.String>",
+      "defaultValue": ["multipart/form-data", "application/octet-stream"]
+    },
+    {
+      "name": "traffictape.redaction.headers",
+      "type": "java.util.List<java.lang.String>",
+      "defaultValue": ["Authorization", "Cookie", "Set-Cookie", "Proxy-Authorization", "X-Api-Key", "Api-Key"]
+    },
+    {
+      "name": "traffictape.redaction.json-fields",
+      "type": "java.util.List<java.lang.String>",
+      "defaultValue": ["password", "token", "accessToken", "refreshToken", "secret", "clientSecret", "ssn", "creditCard", "cardNumber", "cvv"]
+    }
+  ],
+  "hints": [
+    {
+      "name": "traffictape.capture.include.methods",
+      "values": [
+        { "value": "GET" },
+        { "value": "POST" },
+        { "value": "PUT" },
+        { "value": "PATCH" },
+        { "value": "DELETE" },
+        { "value": "HEAD" },
+        { "value": "OPTIONS" }
+      ]
+    },
+    {
+      "name": "traffictape.capture.exclude.routes",
+      "values": [
+        { "value": "/actuator/**", "description": "Management endpoints." },
+        { "value": "/health", "description": "Load balancer health checks." },
+        { "value": "/metrics" },
+        { "value": "/**/internal/**" }
+      ]
+    },
+    {
+      "name": "traffictape.capture.exclude.content-types",
+      "values": [
+        { "value": "multipart/form-data", "description": "File uploads." },
+        { "value": "application/octet-stream" },
+        { "value": "application/pdf" },
+        { "value": "text/html" }
+      ]
+    },
+    {
+      "name": "traffictape.capture.exclude.request-headers.keys",
+      "values": [
+        { "value": "X-Smoke-Test", "description": "Conventional marker for a functional test harness." },
+        { "value": "X-Synthetic-Monitor" },
+        { "value": "User-Agent", "description": "Match probes and load generators by agent glob." }
+      ]
+    },
+    {
+      "name": "traffictape.capture.exclude.request-headers.values",
+      "values": [
+        { "value": "*", "description": "Exclude whenever the header is present, whatever its value." }
+      ]
+    },
+    {
+      "name": "traffictape.redaction.headers",
+      "values": [
+        { "value": "Authorization" },
+        { "value": "Proxy-Authorization" },
+        { "value": "Cookie" },
+        { "value": "Set-Cookie" },
+        { "value": "X-Api-Key" },
+        { "value": "Api-Key" },
+        { "value": "X-Auth-Token" },
+        { "value": "X-Csrf-Token" }
+      ]
+    },
+    {
+      "name": "traffictape.redaction.json-fields",
+      "values": [
+        { "value": "password" },
+        { "value": "token" },
+        { "value": "accessToken" },
+        { "value": "refreshToken" },
+        { "value": "secret" },
+        { "value": "clientSecret" },
+        { "value": "ssn" },
+        { "value": "creditCard" },
+        { "value": "cardNumber" },
+        { "value": "cvv" },
+        { "value": "pin" },
+        { "value": "dateOfBirth" },
+        { "value": "iban" },
+        { "value": "taxId" }
+      ]
+    }
+  ]
+}

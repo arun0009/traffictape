@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.traffictape.model.BodyCapture;
 import io.traffictape.model.BodyEncoding;
 import io.traffictape.policy.CapturePolicy;
+import io.traffictape.redaction.DefaultRedactor;
 import io.traffictape.redaction.Redactor;
 import org.junit.jupiter.api.Test;
 
@@ -13,8 +14,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class BodyCodecTest {
 
-    private final BodyCodec codec = new BodyCodec(new ObjectMapper(), new Redactor(CapturePolicy.safeDefaults()), 16);
-    private final BodyCodec jsonCodec = new BodyCodec(new ObjectMapper(), new Redactor(CapturePolicy.safeDefaults()), 1024);
+    private final BodyCodec codec = new BodyCodec(new ObjectMapper(), new DefaultRedactor(CapturePolicy.safeDefaults()), 16);
+    private final BodyCodec jsonCodec = new BodyCodec(new ObjectMapper(), new DefaultRedactor(CapturePolicy.safeDefaults()), 1024);
 
     @Test
     void emptyBody() {
@@ -67,7 +68,7 @@ class BodyCodecTest {
     @Test
     void omitsTextBodiesWhenDisabled() {
         BodyCodec noText = new BodyCodec(
-                new ObjectMapper(), new Redactor(CapturePolicy.safeDefaults()), 1024, false);
+                new ObjectMapper(), new DefaultRedactor(CapturePolicy.safeDefaults()), 1024, false);
         BodyCapture capture = noText.decode("<r>x</r>".getBytes(StandardCharsets.UTF_8),
                 "application/xml", false, 8L);
         assertThat(capture.encoding()).isEqualTo(BodyEncoding.OMITTED);

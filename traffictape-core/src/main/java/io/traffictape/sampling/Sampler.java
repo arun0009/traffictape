@@ -12,8 +12,4 @@ public interface Sampler {
     boolean shouldCapture(ScenarioKey key);
 
     void recordCaptured(ScenarioKey key);
-
-    default boolean isSaturated(ScenarioKey key) {
-        return !shouldCapture(key);
-    }
 }

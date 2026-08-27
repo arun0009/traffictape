@@ -63,7 +63,20 @@ OUTBOUND POST /ledger         parent=abc sequence=2
 
 That graph is what lets an offline tool emit **one regression test + N mocks**.
 
+## Start with your test suite
+
+Before deploying anything, point TrafficTape at the tests you already have:
+
+```bash
+mvn test    # with traffictape enabled in test scope
+java -jar traffictape-cli-0.1.0-all.jar generate --corpus target/traffic-tape --out ./out
+```
+
+No deployment, no waiting, and nothing to review about customer data on disk — the only traffic is traffic your own tests generated. You get stubs and a test plan in one build, and a baseline that pins current behaviour before a refactor. The corpus is only as good as the suite: [capture from tests](docs/capture-from-tests.md) covers which test styles record what.
+
 ## Disposable lifecycle
+
+QA capture is the path to the scenarios your tests *don't* cover.
 
 ```text
 1. Add traffictape-spring-boot
@@ -71,13 +84,36 @@ That graph is what lets an offline tool emit **one regression test + N mocks**.
 3. Enable capture
 4. Let real traffic run for **2–3 days** (nightly and weekend jobs)
 5. When a scenario hits N, bodies stop for that scenario; new scenarios still record
-6. Disable capture when `captureReady` (or when you are done)
+6. Disable capture when [ready](#knowing-when-to-stop) (or when you are done)
 7. Copy the corpus
 8. Analyze (you, a script, or an AI) against existing tests + source
 9. Remove the dependency
 ```
 
 TrafficTape is not meant to stay in production.
+
+## Knowing when to stop
+
+With Actuator on the classpath, expose the endpoint and ask:
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: [health, traffictape]
+```
+
+```console
+$ curl -s localhost:8080/actuator/traffictape
+{"ready":false,"plateauReached":false,"scenariosMissingExamples":0,
+ "uniqueEndpoints":7,"uniqueScenarios":8,"observedRequests":8,
+ "capturedEvents":8,"droppedEvents":0,"writeErrors":0,"incomplete":[]}
+```
+
+`ready` requires two things: no new scenario for `plateau-after` (default 6h), and no scenario missing bodies it should have. `incomplete` names the ones that are short, so a non-zero `droppedEvents` or `writeErrors` tells you the corpus is thinner than the traffic was.
+
+Route templates and counts only — no bodies — so it is as safe to expose as the rest of Actuator. Without Actuator the same numbers are in the trailing `STATISTICS` event of the corpus.
 
 ## Install
 
@@ -105,7 +141,12 @@ traffictape:
     exclude:
       routes: [/health, /actuator/**]
       content-types: [multipart/form-data]
+      request-headers:            # synthetic traffic on real endpoints
+        X-Smoke-Test: ["*"]       # "*" = exclude on presence alone
+        User-Agent: ["kube-probe/*"]
 ```
+
+Excluding by route is not enough when smoke tests, probes, and load generators hit the *same* endpoints as real users. `exclude.request-headers` drops those by marker header, and drops the outbound calls they caused along with them — otherwise the corpus gains dependencies with no parent request. See [configuration](docs/configuration.md#excluding-synthetic-traffic).
 
 Restart after changing `enabled` (v0.1 is startup-config only).
 
@@ -181,7 +222,7 @@ Details, including the collisions the tool cannot resolve for you: [generate](do
 | `traffictape-spring-boot` | Spring MVC + RestClient + RestTemplate + WebClient + OkHttp |
 | `traffictape-cli` | Offline `generate`: corpus to WireMock / Mountebank / test plan |
 | `traffictape-example` | Demo app |
-| `traffictape-benchmarks` | Overhead checks |
+| `traffictape-benchmarks` | JMH plus request-thread overhead checks (`make bench`) |
 
 Spring is the first **adapter** and the CLI is the first **consumer**; the product is the corpus between them. Future runtimes should emit the same events, and anything that reads the schema works with the CLI unchanged.
 
@@ -239,6 +280,7 @@ If security **does** allow a bucket, `traffictape-sink-s3` writes the file tree 
 ## Docs
 
 - [Architecture](docs/architecture.md)
+- [Capture from your test suite](docs/capture-from-tests.md)
 - [Corpus format](docs/corpus-format.md)
 - [Generate mocks](docs/generate.md)
 - [Configuration](docs/configuration.md)

@@ -1,63 +1,36 @@
 package io.traffictape.fingerprint;
 
-import java.util.regex.Pattern;
-
 /**
  * Turns concrete paths into templates without using literal IDs.
- * Prefer a framework-supplied route template when the adapter has one.
+ *
+ * <p>Replace this when your identifiers are not the shapes {@link DefaultPathNormalizer} knows.
+ * Getting it wrong is expensive rather than merely imperfect: an identifier that survives
+ * normalization becomes part of the endpoint fingerprint, so one endpoint fragments into a
+ * scenario per distinct ID and the corpus stops being a summary of behaviour.
+ *
+ * <p>Usually you want to add a shape rather than replace the set, which means extending
+ * {@link DefaultPathNormalizer#normalizeSegment(String)}. Implement this interface directly only
+ * when you intend to own normalization entirely — a bare lambda silently drops the built-in UUID,
+ * ULID, integer, and hex handling.
  */
-public final class PathNormalizer {
+@FunctionalInterface
+public interface PathNormalizer {
 
-    private static final Pattern UUID = Pattern.compile(
-            "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
-    private static final Pattern ULID = Pattern.compile("[0-9A-HJKMNP-TV-Z]{26}");
-    private static final Pattern NUMERIC = Pattern.compile("^[0-9]{1,19}$");
-    private static final Pattern HEX = Pattern.compile("^[0-9a-fA-F]{16,64}$");
+    /**
+     * Replaces identifier segments of {@code path} with placeholders such as {@code {id}}.
+     * Must be stable: the same path always yields the same template.
+     */
+    String normalize(String path);
 
-    public String normalize(String path) {
-        if (path == null || path.isEmpty()) {
-            return "/";
-        }
-        String p = path;
-        int q = p.indexOf('?');
-        if (q >= 0) {
-            p = p.substring(0, q);
-        }
-        if (!p.startsWith("/")) {
-            p = "/" + p;
-        }
-        String[] parts = p.split("/");
-        StringBuilder out = new StringBuilder();
-        for (int i = 0; i < parts.length; i++) {
-            String part = parts[i];
-            if (part.isEmpty()) {
-                continue;
-            }
-            out.append('/').append(normalizeSegment(part));
-        }
-        return out.isEmpty() ? "/" : out.toString();
-    }
-
-    public String preferTemplate(String springTemplate, String path) {
-        if (springTemplate != null && !springTemplate.isBlank() && springTemplate.contains("{")) {
-            return springTemplate;
+    /**
+     * Uses the route template the web framework already matched, falling back to
+     * {@link #normalize} when the adapter has none. A framework template is always better than
+     * inference, so implementations rarely need to override this.
+     */
+    default String preferTemplate(String frameworkTemplate, String path) {
+        if (frameworkTemplate != null && !frameworkTemplate.isBlank() && frameworkTemplate.contains("{")) {
+            return frameworkTemplate;
         }
         return normalize(path);
-    }
-
-    private static String normalizeSegment(String segment) {
-        if (UUID.matcher(segment).matches()) {
-            return "{uuid}";
-        }
-        if (ULID.matcher(segment).matches()) {
-            return "{ulid}";
-        }
-        if (NUMERIC.matcher(segment).matches()) {
-            return "{id}";
-        }
-        if (HEX.matcher(segment).matches()) {
-            return "{hash}";
-        }
-        return segment;
     }
 }

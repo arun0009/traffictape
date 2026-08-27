@@ -22,7 +22,11 @@ public final class TrafficTapeCli {
         }
     }
 
-    static int run(String[] args, PrintStream out, PrintStream err) {
+    /**
+     * Runs a command and returns a process exit code without terminating the JVM, so a build or
+     * test can invoke generation in-process.
+     */
+    public static int run(String[] args, PrintStream out, PrintStream err) {
         if (args.length == 0 || isHelp(args[0])) {
             usage(out);
             return args.length == 0 ? 2 : 0;
