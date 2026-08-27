@@ -58,7 +58,6 @@ jobs:
           generate_release_notes: true
           files: |
             traffictape-core/target/traffictape-core-*.jar
-            traffictape-sink-file/target/traffictape-sink-file-*.jar
             traffictape-sink-s3/target/traffictape-sink-s3-*.jar
             traffictape-sink-cloudwatch/target/traffictape-sink-cloudwatch-*.jar
             traffictape-spring-boot/target/traffictape-spring-boot-*.jar

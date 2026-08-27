@@ -19,10 +19,6 @@
             <artifactId>traffictape-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.github.arun0009</groupId>
-            <artifactId>traffictape-sink-file</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>

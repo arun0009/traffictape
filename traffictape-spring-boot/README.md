@@ -2,7 +2,7 @@
 
 The recorder. Auto-configures the inbound servlet filter, the outbound RestClient / RestTemplate / WebClient / OkHttp interceptors, the async capture worker, and the `/actuator/traffictape` endpoint.
 
-This is the dependency to add for a local corpus on disk. It writes through `traffictape-sink-file`, which it brings with it.
+This is the dependency to add for a local corpus on disk. The gzip JSONL file writer is built in.
 
 ```xml
 <dependency>

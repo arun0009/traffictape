@@ -29,7 +29,6 @@
 
     <modules>
         <module>traffictape-core</module>
-        <module>traffictape-sink-file</module>
         <module>traffictape-sink-s3</module>
         <module>traffictape-sink-cloudwatch</module>
         <module>traffictape-spring-boot</module>
@@ -80,11 +79,6 @@
             <dependency>
                 <groupId>io.github.arun0009</groupId>
                 <artifactId>traffictape-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.arun0009</groupId>
-                <artifactId>traffictape-sink-file</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

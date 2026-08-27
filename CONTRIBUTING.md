@@ -13,10 +13,9 @@ TrafficTape records HTTP from a running Spring Boot app. A CLI turns that record
 ## Modules
 
 - `traffictape-core` — transaction model, fingerprinting, sampling, redaction, `CaptureSink`
-- `traffictape-sink-file` — gzip JSONL writer
 - `traffictape-sink-s3` — S3 writer (one prefix per task; for Fargate)
 - `traffictape-sink-cloudwatch` — CloudWatch Logs (batched `PutLogEvents` + `STATISTICS`)
-- `traffictape-spring-boot` — Spring MVC / RestClient / RestTemplate / WebClient / OkHttp adapter
+- `traffictape-spring-boot` — Spring MVC / RestClient / RestTemplate / WebClient / OkHttp adapter, plus the default gzip JSONL file writer
 - `traffictape-cli` — offline `generate` to WireMock / Mountebank / test-plan.json
 - `traffictape-example` — demo app
 - `traffictape-benchmarks` — JMH plus request-thread overhead checks
