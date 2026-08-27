@@ -6,6 +6,10 @@ updates:
       interval: daily
       time: "20:00"
     open-pull-requests-limit: 10
+    ignore:
+      # Stay on Spring Boot 3.x until we choose to migrate.
+      - dependency-name: "org.springframework.boot:*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
