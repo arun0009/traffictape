@@ -128,7 +128,7 @@ A sink resumes numbering after the events files already in the directory and cre
 
 ## Fargate / CloudWatch
 
-When S3 is blocked, add the sink alongside `traffictape-spring-boot` and set `traffictape.output.cloudwatch.log-group`.
+When S3 is blocked, use this sink and set `traffictape.output.cloudwatch.log-group`. It brings `traffictape-spring-boot` with it, so this one dependency replaces the starter in your build.
 
 ```xml
 <dependency>
@@ -164,7 +164,7 @@ Dump: `aws logs filter-log-events --log-group-name /traffictape/qa/payments-api 
 
 ## Fargate / S3
 
-If a bucket is allowed, add this sink instead of the CloudWatch one.
+If a bucket is allowed, use this sink instead of the CloudWatch one. It also brings `traffictape-spring-boot` with it.
 
 ```xml
 <dependency>

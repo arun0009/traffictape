@@ -18,6 +18,12 @@
             <groupId>io.github.arun0009</groupId>
             <artifactId>traffictape-core</artifactId>
         </dependency>
+        <!-- A sink is only a destination; the adapter is what records traffic.
+             Depending on it means one coordinate is enough to add this sink. -->
+        <dependency>
+            <groupId>io.github.arun0009</groupId>
+            <artifactId>traffictape-spring-boot</artifactId>
+        </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>cloudwatchlogs</artifactId>

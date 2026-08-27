@@ -77,7 +77,7 @@ curl -s localhost:8080/actuator/traffictape
 
 `ready: true` means no new behaviour for a while. Copy `/tmp/traffic-tape` and take the dependency out. Expose the endpoint with `management.endpoints.web.exposure.include: [health, traffictape]`.
 
-On Fargate without S3, add `traffictape-sink-cloudwatch`. With a bucket, add `traffictape-sink-s3`. Same `groupId` and version as above; snippets in [Configuration](docs/configuration.md#fargate--cloudwatch).
+On Fargate without S3, swap the dependency above for `traffictape-sink-cloudwatch`. With a bucket, use `traffictape-sink-s3`. Either one brings the starter with it, so you never need both. [Configuration](docs/configuration.md#fargate--cloudwatch).
 
 ## Generate stubs
 
