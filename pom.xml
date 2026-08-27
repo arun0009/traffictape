@@ -33,6 +33,7 @@
         <module>traffictape-sink-s3</module>
         <module>traffictape-sink-cloudwatch</module>
         <module>traffictape-spring-boot</module>
+        <module>traffictape-cli</module>
         <module>traffictape-example</module>
         <module>traffictape-benchmarks</module>
     </modules>
@@ -99,6 +100,11 @@
             <dependency>
                 <groupId>io.github.arun0009</groupId>
                 <artifactId>traffictape-spring-boot</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.arun0009</groupId>
+                <artifactId>traffictape-cli</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

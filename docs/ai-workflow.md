@@ -1,14 +1,17 @@
 # AI / offline workflow
 
-TrafficTape does not generate Karate or WireMock. The corpus is the bridge.
+Mocks and a test plan are mechanical, so [`traffictape-cli`](generate.md) produces them directly — run it first. What is left is the judgement call: which scenarios deserve a regression test, and what each test should actually assert. That is what this workflow is for.
+
+Give an LLM `test-plan.json` alongside your existing tests and it has the request, the expected response, and the outbound stubs each case depends on, without needing to parse the corpus itself.
 
 ## Inputs
 
 1. `FOR_CLAUDE.md`
-2. `statistics.json` / `gaps.json` / `fanout.json` (or latest CloudWatch `STATISTICS`)
-3. Sampled `events/*.jsonl.gz` (or `HTTP_TRANSACTION` lines)
-4. Existing Karate tests
-5. Application source (optional)
+2. `test-plan.json` from `traffictape generate`
+3. `statistics.json` / `gaps.json` / `fanout.json` (or latest CloudWatch `STATISTICS`)
+4. Sampled `events/*.jsonl.gz` (or `HTTP_TRANSACTION` lines)
+5. Existing Karate tests
+6. Application source (optional)
 
 ## Prompt shape
 
@@ -24,12 +27,13 @@ For each important gap:
 
 1. Generate a Karate regression test.
 2. Preserve meaningful assertions rather than snapshotting dynamic values.
-3. Group outbound HTTP calls by parentExchangeId / sequence (see fanout.json).
-4. Generate WireMock or Mountebank mocks for those outbound calls.
-5. Use captured responses as realistic mock bodies.
-6. Parameterize IDs, timestamps, tokens.
-7. Do not duplicate identical scenario fingerprints.
-8. Prefer representative scenarios over maximizing test count.
+3. Reuse the stubs already generated under wiremock/ or mountebank/ —
+   test-plan.json names the ones each case depends on. Do not re-derive them.
+4. Parameterize IDs, timestamps, tokens.
+5. Do not duplicate identical scenario fingerprints.
+6. Prefer representative scenarios over maximizing test count.
+7. Call out cases whose expected body was omitted or truncated at capture
+   time; those assertions cannot be trusted.
 ```
 
 ## CloudWatch dump

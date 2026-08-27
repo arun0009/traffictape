@@ -153,6 +153,23 @@ Defaults back off via `@ConditionalOnMissingBean`.
 
 Schema: [corpus format](docs/corpus-format.md).
 
+## Generate mocks
+
+```bash
+java -jar traffictape-cli-0.1.0-all.jar generate --corpus /tmp/traffic-tape --out ./out
+```
+
+```text
+Read 4182 events from 6 file(s): 37 inbound scenarios, 24 outbound scenarios.
+Wrote 22 WireMock mapping(s) to out/wiremock/mappings
+Wrote 4 Mountebank imposter(s) to out/mountebank/imposters.json
+Wrote 37 test case(s) to out/test-plan.json
+```
+
+Outbound scenarios become stubs — those are the calls your service made. Inbound scenarios become `test-plan.json` cases, each naming the outbound stubs that the same request caused. Templated routes match by pattern, endpoints with several scenarios match on request *shape* so differing IDs do not break them, and scenarios are deduplicated by fingerprint so a four-task corpus does not produce four copies.
+
+Details, including the collisions the tool cannot resolve for you: [generate](docs/generate.md).
+
 ## Modules
 
 | Module | Role |
@@ -162,10 +179,11 @@ Schema: [corpus format](docs/corpus-format.md).
 | `traffictape-sink-s3` | S3 corpus (when a bucket is allowed) |
 | `traffictape-sink-cloudwatch` | CloudWatch Logs (Fargate when S3 is blocked) |
 | `traffictape-spring-boot` | Spring MVC + RestClient + RestTemplate + WebClient + OkHttp |
+| `traffictape-cli` | Offline `generate`: corpus to WireMock / Mountebank / test plan |
 | `traffictape-example` | Demo app |
 | `traffictape-benchmarks` | Overhead checks |
 
-Spring is the first **adapter**. The product is the corpus. Future runtimes should emit the same events; future CLIs should consume them. Neither is in v0.1.
+Spring is the first **adapter** and the CLI is the first **consumer**; the product is the corpus between them. Future runtimes should emit the same events, and anything that reads the schema works with the CLI unchanged.
 
 ### Fargate
 
@@ -214,13 +232,15 @@ If security **does** allow a bucket, `traffictape-sink-s3` writes the file tree 
 - WebClient **request** bodies are not rematerialized (responses are).
 - Plain-text bodies cannot be field-redacted; unparseable (usually truncated) JSON is omitted.
 - Inbound responses are still teed after a scenario’s example budget is full (enqueueing stops).
-- Sampler budget is per JVM (four tasks × 100 examples ≈ 400 events), so a corpus from multiple instances needs deduplication by scenario fingerprint.
-- No CLI, Karate, or WireMock generation.
+- Sampler budget is per JVM (four tasks × 100 examples ≈ 400 events); `traffictape-cli` deduplicates by scenario fingerprint offline.
+- The CLI emits mock definitions and a test plan as **data**. It does not generate Karate or JUnit source.
+- Two scenarios that differ only by response status cannot be told apart by a request matcher; the CLI keeps the success case and reports the other.
 
 ## Docs
 
 - [Architecture](docs/architecture.md)
 - [Corpus format](docs/corpus-format.md)
+- [Generate mocks](docs/generate.md)
 - [Configuration](docs/configuration.md)
 - [Sampling](docs/sampling.md)
 - [Redaction](docs/redaction.md)
