@@ -56,7 +56,7 @@
         <spring-boot.version>3.4.13</spring-boot.version>
         <aws-sdk.version>2.31.78</aws-sdk.version>
         <okhttp.version>4.12.0</okhttp.version>
-        <testcontainers.version>1.21.4</testcontainers.version>
+        <testcontainers.version>2.0.5</testcontainers.version>
         <testcontainers-floci.version>1.4.0</testcontainers-floci.version>
         <jmh.version>1.37</jmh.version>
     </properties>
