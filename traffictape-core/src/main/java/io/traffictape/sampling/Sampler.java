@@ -2,7 +2,9 @@ package io.traffictape.sampling;
 
 /**
  * Decides whether a representative example should be retained for a scenario.
- * Implementations must be bounded. First-N per scenario is the v0.1 strategy.
+ * {@link #shouldCapture} may reserve a slot; {@link #recordCaptured} confirms
+ * it after a successful enqueue. The default sampler reserves atomically in
+ * {@code shouldCapture} so concurrent requests cannot exceed the budget.
  *
  * <p>To replace: implement this and expose a {@code @Bean Sampler}. The default
  * backs off via {@code @ConditionalOnMissingBean}.

@@ -23,7 +23,6 @@ traffictape:
     max-bytes: 52428800
   output:
     directory: /tmp/traffic-tape
-    compression: gzip
     rotate-after-events: 1000
     rotate-after-bytes: 52428800
     # Fargate without S3: add traffictape-sink-cloudwatch.
@@ -108,6 +107,7 @@ management:
 | `scenariosMissingExamples` | Scenarios with fewer stored bodies than their observations allowed. |
 | `incomplete` | Those scenarios, worst first, capped at 20. |
 | `droppedEvents` / `writeErrors` | Queue overflow and sink failures — the corpus is thinner than the traffic. |
+| `sinkDisabled` | The file sink could not create its directory. Events are accepted and then discarded. |
 
 The two conditions are independent on purpose. A plateau alone can mean traffic simply stopped;
 complete bodies alone say nothing about behaviour you have not seen yet.

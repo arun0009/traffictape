@@ -2,7 +2,7 @@
 
 The fastest way to get a corpus is to point TrafficTape at the tests you already have. One `mvn test`, no deployment, no waiting for QA traffic, and no review of whether customer data may be written to disk — the only traffic is traffic your own tests generated.
 
-Use this to evaluate TrafficTape in a few minutes, and to lock in current behaviour before a refactor. Use [QA capture](../README.md#disposable-lifecycle) when you need the scenarios your tests *don't* cover.
+Use this to evaluate TrafficTape in a few minutes, and to lock in current behaviour before a refactor. Use QA capture (see the README) when you need the scenarios your tests *don't* cover.
 
 ## Recipe
 
@@ -12,7 +12,7 @@ Add the starter in test scope so it cannot ship:
 <dependency>
     <groupId>io.github.arun0009</groupId>
     <artifactId>traffictape-spring-boot</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>${traffictape.version}</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -35,7 +35,7 @@ Run the suite, then generate:
 
 ```bash
 mvn test
-java -jar traffictape-cli-0.1.0-all.jar generate --corpus target/traffic-tape --out ./out
+java -jar traffictape-cli-${traffictape.version}-all.jar generate --corpus target/traffic-tape --out ./out
 ```
 
 That is the whole loop. `out/wiremock/mappings` holds a stub per outbound call your service made, and `out/test-plan.json` holds a case per inbound request naming the stubs it depends on. See [generate](generate.md).

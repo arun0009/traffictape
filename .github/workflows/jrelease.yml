@@ -62,6 +62,7 @@ jobs:
             traffictape-sink-s3/target/traffictape-sink-s3-*.jar
             traffictape-sink-cloudwatch/target/traffictape-sink-cloudwatch-*.jar
             traffictape-spring-boot/target/traffictape-spring-boot-*.jar
+            traffictape-cli/target/traffictape-cli-*-all.jar
           draft: false
 
       - name: Set next version

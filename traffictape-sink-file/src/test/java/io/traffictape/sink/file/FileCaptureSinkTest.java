@@ -60,6 +60,21 @@ class FileCaptureSinkTest {
     }
 
     @Test
+    void aPathThatCannotBeCreatedDisablesTheSinkInsteadOfThrowing() throws Exception {
+        Path blocked = temp.resolve("blocked");
+        Files.writeString(blocked, "not a directory");
+        FileCaptureSink sink = new FileCaptureSink(blocked, Map.of());
+        assertThat(sink.isDisabled()).isTrue();
+        HttpTransaction tx = new HttpTransaction(
+                "1", EventType.HTTP_TRANSACTION, Direction.INBOUND, Instant.parse("2026-08-26T22:00:00Z"),
+                null, null, "GET", "/x", "/x", Map.of(), null, "none", "200",
+                4, null, null);
+        sink.write(new CaptureBatch(List.of(tx), new StatisticsRegistry(10).snapshot()));
+        sink.close();
+        assertThat(Files.isDirectory(blocked)).isFalse();
+    }
+
+    @Test
     void secondSinkOnTheSameDirectoryDoesNotOverwriteTheFirst() throws Exception {
         writeOneEvent("first");
         writeOneEvent("second");

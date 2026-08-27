@@ -64,6 +64,8 @@ public final class CapturePolicy {
         return acceptsMethod(observed.method())
                 && acceptsRoute(path)
                 && acceptsDestination(observed.destination())
+                && acceptsContentType(observed.requestContentType())
+                && acceptsContentType(observed.responseContentType())
                 && acceptsRequestHeaders(observed.requestHeaders());
     }
 

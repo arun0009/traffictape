@@ -71,9 +71,14 @@ public final class FileCaptureSink implements CaptureSink {
             writeIndex(null);
             ok = true;
         } catch (IOException e) {
-            log.warn("TrafficTape file sink disabled; cannot write {}", directory, e);
+            log.error("TrafficTape file sink disabled; cannot write {}", directory, e);
         }
         this.disabled = !ok;
+    }
+
+    @Override
+    public boolean isDisabled() {
+        return disabled;
     }
 
     /**

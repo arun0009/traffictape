@@ -13,7 +13,7 @@ import java.io.InputStream;
  * Tees the request body as the application reads it. Never pre-consumes the stream
  * and never withholds bytes from the controller. Capture buffer is capped.
  */
-public final class BoundedRequestWrapper extends HttpServletRequestWrapper {
+final class BoundedRequestWrapper extends HttpServletRequestWrapper {
 
     private final int maxBytes;
     private final ByteArrayOutputStream captured = new ByteArrayOutputStream();

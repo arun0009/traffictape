@@ -126,7 +126,7 @@ class TrafficTapeSpringTest {
 
     @Test
     void capturesQueryParameters() throws Exception {
-        mvc.perform(get("/widgets/1").param("expand", "true")).andExpect(status().isOk());
+        mvc.perform(get("/widgets/1?expand=true")).andExpect(status().isOk());
         awaitEvents(1);
         assertThat(inbound("GET").query()).containsKey("expand");
     }

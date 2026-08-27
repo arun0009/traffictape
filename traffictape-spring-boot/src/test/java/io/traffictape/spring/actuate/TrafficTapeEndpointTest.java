@@ -55,6 +55,7 @@ class TrafficTapeEndpointTest {
                 .andExpect(jsonPath("$.uniqueScenarios").value(1))
                 .andExpect(jsonPath("$.lastNewScenarioAt").exists())
                 .andExpect(jsonPath("$.writeErrors").value(0))
+                .andExpect(jsonPath("$.sinkDisabled").value(false))
                 .andExpect(jsonPath("$.maxExamplesPerScenario").value(50))
                 // A body was captured for every observation, so nothing is missing.
                 .andExpect(jsonPath("$.scenariosMissingExamples").value(0))

@@ -1,5 +1,6 @@
 package io.traffictape.spring.actuate;
 
+import io.traffictape.capture.CaptureSink;
 import io.traffictape.statistics.StatisticsRegistry;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
@@ -25,9 +26,11 @@ public class TrafficTapeEndpoint {
     private static final int MAX_LISTED = 20;
 
     private final StatisticsRegistry statistics;
+    private final CaptureSink sink;
 
-    public TrafficTapeEndpoint(StatisticsRegistry statistics) {
+    public TrafficTapeEndpoint(StatisticsRegistry statistics, CaptureSink sink) {
         this.statistics = statistics;
+        this.sink = sink == null ? CaptureSink.NOOP : sink;
     }
 
     @ReadOperation
@@ -55,6 +58,7 @@ public class TrafficTapeEndpoint {
         out.put("capturedEvents", snapshot.capturedEvents());
         out.put("droppedEvents", snapshot.droppedEvents());
         out.put("writeErrors", statistics.writeErrors());
+        out.put("sinkDisabled", sink.isDisabled());
         out.put("bytesCaptured", snapshot.bytesCaptured());
         out.put("incomplete", describe(incomplete));
         return out;

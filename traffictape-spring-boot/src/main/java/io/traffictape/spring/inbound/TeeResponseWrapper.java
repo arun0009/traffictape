@@ -15,7 +15,7 @@ import java.nio.charset.Charset;
  * Writes through to the client immediately while copying a capped prefix for capture.
  * Unlike Spring's ContentCachingResponseWrapper this does not delay the response.
  */
-public final class TeeResponseWrapper extends HttpServletResponseWrapper {
+final class TeeResponseWrapper extends HttpServletResponseWrapper {
 
     private final int maxBytes;
     private final ByteArrayOutputStream captured = new ByteArrayOutputStream();

@@ -25,12 +25,37 @@ class RedactorTest {
     }
 
     @Test
+    void redactsDefaultDenylistedHeaders() {
+        Map<String, List<String>> headers = redactor.headers(Map.of(
+                "Cookie", List.of("sid=abc"),
+                "Set-Cookie", List.of("sid=abc"),
+                "X-Api-Key", List.of("k"),
+                "Api-Key", List.of("k2")));
+        assertThat(headers.get("Cookie")).containsExactly("[REDACTED]");
+        assertThat(headers.get("Set-Cookie")).containsExactly("[REDACTED]");
+        assertThat(headers.get("X-Api-Key")).containsExactly("[REDACTED]");
+        assertThat(headers.get("Api-Key")).containsExactly("[REDACTED]");
+    }
+
+    @Test
     void redactsPasswordFields() throws Exception {
         JsonNode node = mapper.readTree("{\"user\":\"a\",\"password\":\"hunter2\",\"nested\":{\"token\":\"x\"}}");
         JsonNode out = redactor.json(node);
         assertThat(out.get("user").asText()).isEqualTo("a");
         assertThat(out.get("password").asText()).isEqualTo("[REDACTED]");
         assertThat(out.get("nested").get("token").asText()).isEqualTo("[REDACTED]");
+    }
+
+    @Test
+    void anIncludeListDropsFieldsThatAreNotNamed() throws Exception {
+        Redactor allow = new DefaultRedactor(CapturePolicy.builder()
+                .excludeJsonFields(List.of("password"))
+                .includeJsonFields(List.of("user", "password"))
+                .build());
+        JsonNode out = allow.json(mapper.readTree("{\"user\":\"a\",\"password\":\"x\",\"note\":\"keep-out\"}"));
+        assertThat(out.has("note")).isFalse();
+        assertThat(out.get("user").asText()).isEqualTo("a");
+        assertThat(out.get("password").asText()).isEqualTo("[REDACTED]");
     }
 
     @Test

@@ -35,6 +35,58 @@ class CapturePolicyTest {
     }
 
     @Test
+    void excludesOctetStreamAndMultipartThroughAccepts() {
+        ObservedExchange multipart = ObservedExchange.builder()
+                .direction(Direction.INBOUND)
+                .method("POST")
+                .path("/uploads")
+                .requestContentType("multipart/form-data; boundary=x")
+                .status(200)
+                .build();
+        ObservedExchange binary = ObservedExchange.builder()
+                .direction(Direction.INBOUND)
+                .method("GET")
+                .path("/files/1")
+                .responseContentType("application/octet-stream")
+                .status(200)
+                .build();
+        ObservedExchange json = ObservedExchange.builder()
+                .direction(Direction.INBOUND)
+                .method("GET")
+                .path("/files/1")
+                .responseContentType("application/json")
+                .status(200)
+                .build();
+        assertThat(policy.accepts(multipart)).isFalse();
+        assertThat(policy.accepts(binary)).isFalse();
+        assertThat(policy.accepts(json)).isTrue();
+    }
+
+    @Test
+    void excludesConfiguredDestinations() {
+        CapturePolicy p = CapturePolicy.builder()
+                .includeMethods(List.of("GET"))
+                .excludeDestinations(List.of("payments.internal"))
+                .build();
+        ObservedExchange payments = ObservedExchange.builder()
+                .direction(Direction.OUTBOUND)
+                .method("GET")
+                .path("/charge")
+                .destination("payments.internal")
+                .status(200)
+                .build();
+        ObservedExchange inventory = ObservedExchange.builder()
+                .direction(Direction.OUTBOUND)
+                .method("GET")
+                .path("/sku")
+                .destination("inventory")
+                .status(200)
+                .build();
+        assertThat(p.accepts(payments)).isFalse();
+        assertThat(p.accepts(inventory)).isTrue();
+    }
+
+    @Test
     void acceptsEverythingWhenNoRequestHeadersAreExcluded() {
         assertThat(policy.acceptsRequestHeaders(Map.of("X-Smoke-Test", List.of("true")))).isTrue();
     }

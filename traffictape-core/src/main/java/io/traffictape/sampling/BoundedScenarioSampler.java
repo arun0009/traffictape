@@ -5,7 +5,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Bounded first-N sampler keyed by {@link ScenarioKey}.
- * Each distinct endpoint + request shape + response characteristic gets its own budget.
+ * {@link #shouldCapture} reserves a slot atomically so concurrent requests cannot
+ * exceed the budget. A full queue still consumes a reserved slot; that is cheaper
+ * than writing more bodies than configured.
  */
 public final class BoundedScenarioSampler implements Sampler {
 
@@ -21,16 +23,24 @@ public final class BoundedScenarioSampler implements Sampler {
         if (maxExamplesPerScenario == 0 || key == null) {
             return false;
         }
-        AtomicInteger count = captured.get(key);
-        return count == null || count.get() < maxExamplesPerScenario;
+        AtomicInteger count = captured.computeIfAbsent(key, k -> new AtomicInteger());
+        while (true) {
+            int n = count.get();
+            if (n >= maxExamplesPerScenario) {
+                return false;
+            }
+            if (count.compareAndSet(n, n + 1)) {
+                return true;
+            }
+        }
     }
 
+    /**
+     * Slot reservation happens in {@link #shouldCapture}. Kept so a custom {@link Sampler}
+     * can count only after a successful enqueue.
+     */
     @Override
     public void recordCaptured(ScenarioKey key) {
-        if (key == null) {
-            return;
-        }
-        captured.computeIfAbsent(key, k -> new AtomicInteger()).incrementAndGet();
     }
 
     public int capturedCount(ScenarioKey key) {

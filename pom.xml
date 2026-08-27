@@ -241,7 +241,7 @@
                                 </goals>
                                 <phase>package</phase>
                                 <configuration>
-                                    <failOnError>false</failOnError>
+                                    <failOnError>true</failOnError>
                                 </configuration>
                             </execution>
                         </executions>

@@ -18,6 +18,10 @@ public interface CaptureSink extends Closeable {
         }
     };
 
+    default boolean isDisabled() {
+        return false;
+    }
+
     /**
      * Persist one flush of events plus a statistics snapshot. Implementations must not throw
      * in a way that reaches application request threads — the worker already catches.

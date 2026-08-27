@@ -135,7 +135,7 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
         try {
             return !engine.policy().acceptsRequestHeaders(headers(request));
         } catch (Throwable ignored) {
-            return false;
+            return true;
         }
     }
 
@@ -184,11 +184,16 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
 
     private static Map<String, List<String>> query(HttpServletRequest request) {
         Map<String, List<String>> out = new LinkedHashMap<>();
-        Map<String, String[]> params = request.getParameterMap();
-        if (params == null) {
+        String raw = request.getQueryString();
+        if (raw == null || raw.isEmpty()) {
             return out;
         }
-        params.forEach((k, v) -> out.put(k, v == null ? List.of() : List.of(v)));
+        for (String part : raw.split("&")) {
+            int eq = part.indexOf('=');
+            String name = eq < 0 ? part : part.substring(0, eq);
+            String value = eq < 0 ? "" : part.substring(eq + 1);
+            out.computeIfAbsent(name, k -> new java.util.ArrayList<>()).add(value);
+        }
         return out;
     }
 }

@@ -37,7 +37,7 @@ Default include methods: GET, POST, PUT, PATCH, DELETE (not HEAD/OPTIONS).
 
 Default exclude routes: `/health`, `/actuator/**`.
 
-Default exclude content types: `multipart/form-data`, `application/octet-stream`. Binary/image/audio/video are omitted by the body codec even if not listed.
+Default exclude content types: `multipart/form-data`, `application/octet-stream`. Those exchanges are not recorded at all. Binary/image/audio/video bodies are omitted by the body codec even if the content type is not listed.
 
 ## PII
 

@@ -76,6 +76,32 @@ class CaptureEngineTest {
     }
 
     @Test
+    void skipsMultipartAndOctetStream() {
+        CaptureQueue queue = new CaptureQueue(10);
+        CaptureEngine engine = CaptureEngine.createDefault(queue, 10);
+        engine.record(ObservedExchange.builder()
+                .direction(Direction.INBOUND)
+                .timestamp(Instant.now())
+                .method("POST")
+                .path("/uploads")
+                .requestContentType("multipart/form-data")
+                .status(200)
+                .query(Map.of())
+                .build());
+        engine.record(ObservedExchange.builder()
+                .direction(Direction.INBOUND)
+                .timestamp(Instant.now())
+                .method("GET")
+                .path("/blob")
+                .responseContentType("application/octet-stream")
+                .status(200)
+                .query(Map.of())
+                .build());
+        assertThat(engine.statistics().observed()).isZero();
+        assertThat(queue.size()).isZero();
+    }
+
+    @Test
     void requestShapesSplitPatchScenarios() {
         CaptureQueue queue = new CaptureQueue(10);
         CaptureEngine engine = CaptureEngine.createDefault(queue, 10);

@@ -3,7 +3,7 @@
 `traffictape-cli` reads a corpus and writes mock definitions. It is offline: it opens no sockets and needs no application on the classpath.
 
 ```bash
-java -jar traffictape-cli-0.1.0-all.jar generate \
+java -jar traffictape-cli-${traffictape.version}-all.jar generate \
   --corpus /tmp/traffic-tape \
   --out ./traffictape-out
 ```

@@ -1,5 +1,6 @@
 package io.traffictape.spring.actuate;
 
+import io.traffictape.capture.CaptureSink;
 import io.traffictape.spring.TrafficTapeAutoConfiguration;
 import io.traffictape.statistics.StatisticsRegistry;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
@@ -21,10 +22,10 @@ import org.springframework.context.annotation.Bean;
 class TrafficTapeEndpointAutoConfiguration {
 
     @Bean
-    @ConditionalOnBean(StatisticsRegistry.class)
+    @ConditionalOnBean({StatisticsRegistry.class, CaptureSink.class})
     @ConditionalOnMissingBean
     @ConditionalOnAvailableEndpoint(endpoint = TrafficTapeEndpoint.class)
-    TrafficTapeEndpoint trafficTapeEndpoint(StatisticsRegistry statistics) {
-        return new TrafficTapeEndpoint(statistics);
+    TrafficTapeEndpoint trafficTapeEndpoint(StatisticsRegistry statistics, CaptureSink sink) {
+        return new TrafficTapeEndpoint(statistics, sink);
     }
 }
