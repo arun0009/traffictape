@@ -45,7 +45,8 @@ import java.util.Map;
 
 /**
  * Wires core SPIs. To extend: expose a {@code @Bean} of {@link CaptureSink},
- * {@link Fingerprinter}, {@link Sampler}, or {@link CaptureMetrics}.
+ * {@link Fingerprinter}, {@link Sampler}, {@link CaptureMetrics}, {@link Redactor},
+ * or {@link PathNormalizer}.
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "traffictape", name = "enabled", havingValue = "true")

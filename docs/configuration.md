@@ -60,7 +60,7 @@ traffictape:
 
 Safe default: **omit** rather than capture. Tighten `include.headers` / `include.json-fields` in a 70-service estate if you want an allow-list.
 
-`redaction.json-fields` is applied to JSON bodies, XML leaf elements, and form-urlencoded pairs. See [redaction](redaction.md) for what each format covers and what it does not.
+`redaction.json-fields` is applied to JSON fields at any depth, XML elements and attributes, and form-urlencoded pairs. See [redaction](redaction.md) for what each format covers and what it does not.
 
 `max-examples-per-scenario` stops bodies per scenario. `plateau-after` (default 6h) sets `captureReady` when no new unique scenario appears. Later new scenarios still get their own N.
 

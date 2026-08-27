@@ -8,7 +8,7 @@ Spring Boot is the first capture adapter, not the product identity.
 1. The corpus schema is the stable contract. Treat field renames as breaking.
 2. Capture is fail-open. Application traffic always wins.
 3. Default to omission: never capture secrets or binary/multipart bodies.
-4. Do not generate Karate, WireMock, or Mountebank in this repository.
+4. The CLI emits mock *definitions* and a test plan as data. It does not generate Karate or JUnit source.
 5. New language adapters (Go, Node, …) should produce the same `HttpTransaction` JSON.
 
 ## Modules
@@ -18,8 +18,9 @@ Spring Boot is the first capture adapter, not the product identity.
 - `traffictape-sink-s3` — S3 writer (one prefix per task; for Fargate)
 - `traffictape-sink-cloudwatch` — CloudWatch Logs (batched `PutLogEvents` + `STATISTICS`)
 - `traffictape-spring-boot` — Spring MVC / RestClient / RestTemplate / WebClient / OkHttp adapter
+- `traffictape-cli` — offline `generate` to WireMock / Mountebank / test-plan.json
 - `traffictape-example` — demo app
-- `traffictape-benchmarks` — overhead checks
+- `traffictape-benchmarks` — JMH plus request-thread overhead checks
 
 ## Extending
 
@@ -32,7 +33,7 @@ CaptureSink mySink() {
 }
 ```
 
-Same pattern for `Fingerprinter`, `Sampler`, and `CaptureMetrics`. File/Spring defaults back off via `@ConditionalOnMissingBean`. Do not add framework types to `traffictape-core`.
+Same pattern for `Fingerprinter`, `Sampler`, `CaptureMetrics`, `Redactor`, and `PathNormalizer`. File/Spring defaults back off via `@ConditionalOnMissingBean`. Do not add framework types to `traffictape-core`.
 
 Do not add more sinks to this repository (file, S3, CloudWatch are the set). Unknown output is a `@Bean CaptureSink`. Unknown HTTP clients call `CaptureEngine.record`.
 

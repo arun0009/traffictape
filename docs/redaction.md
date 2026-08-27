@@ -20,7 +20,7 @@ A JSON body that fails to parse — most often because it was truncated at `max-
 
 The same field denylist is applied to non-JSON structured text:
 
-- `application/xml`, `text/xml`, `*+xml` — leaf element text is replaced, including namespaced and attributed elements (`<ns:cvv type="str">123</ns:cvv>`). A denylisted element containing nested elements or CDATA is **not** matched; matching is deliberately linear to keep it off the critical path.
+- `application/xml`, `text/xml`, `*+xml` — denylisted element bodies (including nested content and CDATA) and attributes of the same names are replaced. Namespaced tags are matched (`<ns:cvv type="str">123</ns:cvv>`).
 - `application/x-www-form-urlencoded` — `field=value` pairs are replaced.
 
 Plain text (`text/plain`) has no field structure and is stored as-is after truncation.

@@ -46,7 +46,7 @@ TrafficTape keeps **representative examples**, not every request. Statistics kee
 | **Safe defaults** | Secrets, cookies, `/health`, `/actuator/**`, multipart, and binary are omitted. Bodies are capped. Denylisted fields are redacted in JSON, XML, and form-urlencoded payloads alike. |
 | **Fail-open** | Capture never fails the application. A full queue drops the event. |
 | **A corpus, not a dump of every request** | First N examples per *scenario*. `statistics.json` is the index; `gaps.json` and `fanout.json` are the rewrite brief. |
-| **Escape hatch** | `@Bean` of `CaptureSink`, `Sampler`, `Fingerprinter`, or `CaptureMetrics`. Unknown HTTP stack: `captureEngine.record(ObservedExchange.builder()…)`. |
+| **Escape hatch** | `@Bean` of `CaptureSink`, `Sampler`, `Fingerprinter`, `CaptureMetrics`, `Redactor`, or `PathNormalizer`. Unknown HTTP stack: `captureEngine.record(ObservedExchange.builder()…)`. |
 
 ```text
 PATCH /assets/{id}                         ← endpoint
@@ -140,7 +140,7 @@ traffictape:
       methods: [GET, POST, PUT, PATCH, DELETE]
     exclude:
       routes: [/health, /actuator/**]
-      content-types: [multipart/form-data]
+      content-types: [multipart/form-data, application/octet-stream]
       request-headers:            # synthetic traffic on real endpoints
         X-Smoke-Test: ["*"]       # "*" = exclude on presence alone
         User-Agent: ["kube-probe/*"]

@@ -65,9 +65,11 @@ Core is the engine. Adding a backend or strategy should not touch `CaptureEngine
 | Custom scenario identity | `Fingerprinter` | `@Bean Fingerprinter` |
 | Custom sampling | `Sampler` | `@Bean Sampler` |
 | Metrics backend | `CaptureMetrics` | `@Bean CaptureMetrics` |
+| PII / value-shaped detection | `Redactor` (usually extend `DefaultRedactor`) | `@Bean Redactor` |
+| Org-specific ID shapes in URLs | `PathNormalizer` (usually extend `DefaultPathNormalizer`) | `@Bean PathNormalizer` |
 | Quarkus / servlet / Go | build `ObservedExchange`, call `record` | adapter module |
 
-Spring defaults (`FileCaptureSink`, `DefaultFingerprinter`, `BoundedScenarioSampler`, Micrometer-or-NOOP) all use `@ConditionalOnMissingBean`. User beans win; core does not change.
+Spring defaults back off via `@ConditionalOnMissingBean`. User beans win; core does not change.
 
 A new runtime adapter is:
 
