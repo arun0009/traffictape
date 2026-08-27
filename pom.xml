@@ -55,7 +55,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>3.4.13</spring-boot.version>
         <aws-sdk.version>2.31.78</aws-sdk.version>
-        <okhttp.version>4.12.0</okhttp.version>
+        <okhttp.version>5.5.0</okhttp.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <testcontainers-floci.version>1.4.0</testcontainers-floci.version>
         <jmh.version>1.37</jmh.version>
