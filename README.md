@@ -46,7 +46,7 @@ POST /orders
 
 ## Install
 
-Java 17+, Spring Boot 3.x, Spring MVC.
+Java 17+, Spring Boot 3.x, Spring MVC. Pin `${traffictape.version}` to the version on the Maven Central badge.
 
 ```xml
 <dependency>
@@ -56,7 +56,15 @@ Java 17+, Spring Boot 3.x, Spring MVC.
 </dependency>
 ```
 
-Inject `RestClient.Builder`, `RestTemplateBuilder`, or `WebClient.Builder` so outbound calls are recorded. `RestClient.create()` and `new OkHttpClient()` are not.
+Outbound capture needs an injected `RestClient.Builder`, `RestTemplateBuilder`, `WebClient.Builder`, or an `OkHttpClient` Spring bean. `RestClient.create()` and a client you construct yourself are not recorded.
+
+Add **one** of these. A sink includes the starter; do not add both.
+
+| Where the tape goes | Artifact |
+|---|---|
+| Local disk | `traffictape-spring-boot` |
+| S3 | `traffictape-sink-s3` |
+| CloudWatch Logs | `traffictape-sink-cloudwatch` |
 
 ```yaml
 traffictape:
@@ -77,7 +85,7 @@ curl -s localhost:8080/actuator/traffictape
 
 `ready: true` means no new behaviour for a while. Copy `/tmp/traffic-tape` and take the dependency out. Expose the endpoint with `management.endpoints.web.exposure.include: [health, traffictape]`.
 
-On Fargate without S3, swap the dependency above for `traffictape-sink-cloudwatch`. With a bucket, use `traffictape-sink-s3`. Either one brings the starter with it, so you never need both. [Configuration](docs/configuration.md#fargate--cloudwatch).
+Fargate: [CloudWatch](docs/configuration.md#fargate--cloudwatch) or [S3](docs/configuration.md#fargate--s3).
 
 ## Generate stubs
 

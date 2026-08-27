@@ -29,9 +29,9 @@
 
     <modules>
         <module>traffictape-core</module>
+        <module>traffictape-spring-boot</module>
         <module>traffictape-sink-s3</module>
         <module>traffictape-sink-cloudwatch</module>
-        <module>traffictape-spring-boot</module>
         <module>traffictape-cli</module>
         <module>tests/traffictape-integration-tests</module>
         <module>tests/traffictape-overhead-tests</module>

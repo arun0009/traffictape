@@ -48,7 +48,6 @@ public class TrafficTapeEndpoint {
         }
 
         Map<String, Object> out = new LinkedHashMap<>();
-        // ready = plateaued and no scenario is missing bodies it should have.
         out.put("ready", snapshot.captureReady() && incomplete.isEmpty());
         out.put("plateauReached", snapshot.captureReady());
         out.put("scenariosMissingExamples", incomplete.size());

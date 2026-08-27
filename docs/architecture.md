@@ -50,7 +50,7 @@ inbound Filter / RestClient, RestTemplate, WebClient, OkHttp interceptors
      ┌──────────┼──────────────┐
      ▼          ▼              ▼
    File       S3          CloudWatch
-  (JSONL.gz) (objects)     (logs)
+  (in core)  (sink-s3)    (sink-cloudwatch)
 ```
 
 The worker already batches: **1000 events**, **50&nbsp;MB**, or **30s** (configurable `traffictape.flush`). A sink never sees one event on the request thread. File is the reference corpus. CloudWatch is the Fargate path when S3 is blocked. S3 is the file tree when a bucket is allowed.

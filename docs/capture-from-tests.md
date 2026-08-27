@@ -6,7 +6,7 @@ Use this to evaluate TrafficTape in a few minutes, and to lock in current behavi
 
 ## Recipe
 
-Add the starter in test scope so it cannot ship:
+Add the starter in test scope so it cannot ship. Pin `${traffictape.version}` to the Maven Central badge.
 
 ```xml
 <dependency>

@@ -53,8 +53,8 @@ traffictape:
         User-Agent: ["kube-probe/*", "*synthetic-monitor*"]
   redaction:
     enabled: true          # false disables all redaction and logs a WARN
-    headers: [Authorization, Cookie, Set-Cookie, Proxy-Authorization, X-Api-Key]
-    json-fields: [password, token, accessToken, refreshToken, secret, clientSecret, ssn, creditCard]
+    headers: [Authorization, Cookie, Set-Cookie, Proxy-Authorization, X-Api-Key, Api-Key]
+    json-fields: [password, token, accessToken, refreshToken, secret, clientSecret, ssn, creditCard, cardNumber, cvv]
 ```
 
 Safe default: **omit** rather than capture. Tighten `include.headers` / `include.json-fields` in a 70-service estate if you want an allow-list.
@@ -80,7 +80,7 @@ Header names are case-insensitive and values are globbed case-insensitively. A p
 
 Three things worth knowing:
 
-- **Exclusion covers the whole exchange.** The outbound calls a suppressed request makes are dropped too, even though they do not carry the marker header. Keeping them would put dependencies in the corpus with no parent request, which read as real fan-out. Suppression is carried on the request thread and through the Reactor context for WebClient, so it shares the [async servlet limitation](../README.md#v01-limits): a call made on a thread the filter does not reach is not suppressed.
+- **Exclusion covers the whole exchange.** The outbound calls a suppressed request makes are dropped too, even though they do not carry the marker header. Keeping them would put dependencies in the corpus with no parent request, which read as real fan-out. Suppression is carried on the request thread and through the Reactor context for WebClient, so it shares the [async servlet limitation](../README.md#limits): a call made on a thread the filter does not reach is not suppressed.
 - **Suppression is in-process; it does not travel over the wire.** If a suppressed outbound call reaches another service that is also capturing, that service sees an ordinary inbound request — the marker header is on the original request, not on the hop your service made. Either configure the same exclusion there, or have the caller forward the marker header downstream.
 - **Excluded traffic costs nothing.** The decision is made before request or response wrapping, so a suppressed request is not buffered at all.
 
@@ -107,7 +107,7 @@ management:
 | `scenariosMissingExamples` | Scenarios with fewer stored bodies than their observations allowed. |
 | `incomplete` | Those scenarios, worst first, capped at 20. |
 | `droppedEvents` / `writeErrors` | Queue overflow and sink failures — the corpus is thinner than the traffic. |
-| `sinkDisabled` | The file sink could not create its directory. Events are accepted and then discarded. |
+| `sinkDisabled` | The default file sink could not create its directory. S3 and CloudWatch never set this; check `writeErrors` instead. |
 
 The two conditions are independent on purpose. A plateau alone can mean traffic simply stopped;
 complete bodies alone say nothing about behaviour you have not seen yet.

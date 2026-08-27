@@ -1,4 +1,4 @@
-This directory is a **hand-written sample corpus** showing the v1 layout Claude (or `traffictape inspect` later) should consume.
+This directory is a **hand-written sample corpus** showing the v1 layout. Read `FOR_CLAUDE.md` first, then feed the directory to `traffictape-cli generate`.
 
 ```text
 metadata.json       capture window, totals, captureReady
