@@ -1,0 +1,56 @@
+{
+  "observedRequests": 1284,
+  "capturedEvents": 6,
+  "droppedEvents": 0,
+  "bytesCaptured": 512,
+  "endpoints": [
+    {
+      "fingerprint": "e1",
+      "label": "INBOUND GET /widgets/{id}",
+      "direction": "INBOUND",
+      "method": "GET",
+      "route": "/widgets/{id}",
+      "count": 900,
+      "statuses": { "200": 880, "404": 20 },
+      "capturedExamples": 3,
+      "uniqueScenarios": 2
+    },
+    {
+      "fingerprint": "e2",
+      "label": "INBOUND PATCH /widgets/{id}",
+      "direction": "INBOUND",
+      "method": "PATCH",
+      "route": "/widgets/{id}",
+      "count": 80,
+      "statuses": { "200": 80 },
+      "capturedExamples": 2,
+      "uniqueScenarios": 2
+    }
+  ],
+  "scenarios": [
+    {
+      "fingerprint": "s1",
+      "label": "INBOUND GET /widgets/{id} shape=none resp=200",
+      "count": 880,
+      "capturedExamples": 2
+    },
+    {
+      "fingerprint": "s2",
+      "label": "INBOUND GET /widgets/{id} shape=none resp=404",
+      "count": 20,
+      "capturedExamples": 1
+    },
+    {
+      "fingerprint": "s3",
+      "label": "INBOUND PATCH /widgets/{id} shape={status:string} resp=200",
+      "count": 50,
+      "capturedExamples": 1
+    },
+    {
+      "fingerprint": "s4",
+      "label": "INBOUND PATCH /widgets/{id} shape={owner:string} resp=200",
+      "count": 30,
+      "capturedExamples": 1
+    }
+  ]
+}

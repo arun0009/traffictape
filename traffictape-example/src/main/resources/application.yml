@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: traffictape-example
+
+server:
+  port: 8080
+
+traffictape:
+  enabled: true
+  max-examples-per-scenario: 50
+  max-request-bytes: 1048576
+  max-response-bytes: 1048576
+  queue-size: 10000
+  flush:
+    interval: 5s
+    max-events: 100
+  output:
+    directory: /tmp/traffic-tape
+  capture:
+    include:
+      methods: [GET, POST, PUT, PATCH, DELETE]
+    exclude:
+      routes: [/health, /actuator/**]
+      content-types: [multipart/form-data, application/octet-stream]
+  redaction:
+    enabled: true
+    headers: [Authorization, Cookie, Set-Cookie, Proxy-Authorization]
+    json-fields: [password, token, accessToken, refreshToken, secret, clientSecret, ssn, creditCard]
