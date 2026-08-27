@@ -11,6 +11,7 @@
     <artifactId>traffictape-core</artifactId>
     <name>traffictape-core</name>
     <description>HTTP transaction model, fingerprinting, sampling, redaction, correlation, and CaptureSink</description>
+    <url>https://github.com/arun0009/traffictape</url>
 
     <dependencies>
         <dependency>

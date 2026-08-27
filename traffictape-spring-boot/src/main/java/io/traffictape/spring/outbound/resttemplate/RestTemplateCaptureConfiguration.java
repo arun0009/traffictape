@@ -11,6 +11,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Adds outbound capture to every {@link RestTemplate} built from the auto-configured builder.
+ */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(RestTemplate.class)
 @ConditionalOnProperty(prefix = "traffictape", name = "enabled", havingValue = "true")

@@ -8,6 +8,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Everything under the {@code traffictape.*} prefix. Capture is off unless
+ * {@code traffictape.enabled=true}; nothing is installed until then.
+ *
+ * <p>Nested groups: {@link Flush} (when the writer flushes), {@link Output} (where the
+ * corpus is written and when files rotate), {@link Capture} (which traffic is eligible),
+ * and {@link Redaction} (what is scrubbed before anything is written).
+ */
 @ConfigurationProperties(prefix = "traffictape")
 public class TrafficTapeProperties {
 

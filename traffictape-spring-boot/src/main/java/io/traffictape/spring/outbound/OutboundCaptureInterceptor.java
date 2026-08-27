@@ -33,6 +33,10 @@ public final class OutboundCaptureInterceptor implements ClientHttpRequestInterc
     private final CaptureEngine engine;
     private final TrafficTapeProperties properties;
 
+    /**
+     * @param engine receives observed exchanges
+     * @param properties destination naming and body size caps
+     */
     public OutboundCaptureInterceptor(CaptureEngine engine, TrafficTapeProperties properties) {
         this.engine = engine;
         this.properties = properties;

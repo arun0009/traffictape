@@ -11,6 +11,7 @@
     <artifactId>traffictape-sink-file</artifactId>
     <name>traffictape-sink-file</name>
     <description>Local gzip JSONL corpus writer</description>
+    <url>https://github.com/arun0009/traffictape</url>
 
     <dependencies>
         <dependency>

@@ -11,6 +11,7 @@
     <artifactId>traffictape-sink-s3</artifactId>
     <name>traffictape-sink-s3</name>
     <description>S3 corpus writer for TrafficTape (Fargate / ECS). One prefix per task.</description>
+    <url>https://github.com/arun0009/traffictape</url>
 
     <dependencies>
         <dependency>

@@ -233,6 +233,11 @@
                     <plugin>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>${maven-javadoc-plugin.version}</version>
+                        <configuration>
+                            <failOnError>true</failOnError>
+                            <!-- Config-bean accessors carry their docs on the fields. -->
+                            <doclint>all,-missing</doclint>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>attach-javadoc</id>
@@ -240,9 +245,6 @@
                                     <goal>jar</goal>
                                 </goals>
                                 <phase>package</phase>
-                                <configuration>
-                                    <failOnError>true</failOnError>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

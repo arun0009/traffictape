@@ -11,6 +11,7 @@
     <artifactId>traffictape-spring-boot</artifactId>
     <name>traffictape-spring-boot</name>
     <description>Spring Boot capture adapter for TrafficTape</description>
+    <url>https://github.com/arun0009/traffictape</url>
 
     <dependencies>
         <dependency>

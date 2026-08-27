@@ -9,6 +9,11 @@ import io.traffictape.capture.CaptureMetrics;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * Publishes capture counters, gauges, and latency under the {@code traffictape.*}
+ * meter names. Registered automatically when a {@link MeterRegistry} is present.
+ */
 public final class MicrometerCaptureMetrics implements CaptureMetrics {
 
     private final Counter observed;
@@ -23,6 +28,9 @@ public final class MicrometerCaptureMetrics implements CaptureMetrics {
     private final AtomicInteger scenarios = new AtomicInteger();
     private final AtomicBoolean enabled = new AtomicBoolean();
 
+    /**
+     * @param registry registry the meters are bound to
+     */
     public MicrometerCaptureMetrics(MeterRegistry registry) {
         this.observed = Counter.builder("traffictape.requests").description("Observed HTTP exchanges").register(registry);
         this.examples = Counter.builder("traffictape.examples.captured").register(registry);

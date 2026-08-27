@@ -11,6 +11,7 @@
     <artifactId>traffictape-cli</artifactId>
     <name>traffictape-cli</name>
     <description>Offline tool that turns a traffic corpus into WireMock stubs, Mountebank imposters, and a test plan</description>
+    <url>https://github.com/arun0009/traffictape</url>
 
     <dependencies>
         <dependency>

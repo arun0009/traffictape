@@ -22,11 +22,21 @@ public class TrafficTapeEndpoint {
     private final StatisticsRegistry statistics;
     private final CaptureSink sink;
 
+    /**
+     * @param statistics source of the reported counts and plateau state
+     * @param sink capture sink to report as disabled or not; {@code null} means no sink
+     */
     public TrafficTapeEndpoint(StatisticsRegistry statistics, CaptureSink sink) {
         this.statistics = statistics;
         this.sink = sink == null ? CaptureSink.NOOP : sink;
     }
 
+    /**
+     * Reports whether the corpus looks complete enough to stop capturing. {@code ready} is
+     * {@code true} once capture has plateaued and no scenario is still missing bodies.
+     *
+     * @return capture readiness, counts, and up to 20 incomplete scenarios
+     */
     @ReadOperation
     public Map<String, Object> capture() {
         StatisticsRegistry.Snapshot snapshot = statistics.snapshot();

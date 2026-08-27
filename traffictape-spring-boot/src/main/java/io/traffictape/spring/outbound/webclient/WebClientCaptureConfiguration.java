@@ -31,6 +31,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Adds outbound capture to every {@link WebClient} built from the auto-configured builder.
+ */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(WebClient.class)
 @ConditionalOnProperty(prefix = "traffictape", name = "enabled", havingValue = "true")

@@ -7,8 +7,11 @@ import io.traffictape.correlation.ExchangeContext;
  */
 public final class CaptureContexts {
 
+    /** Servlet request attribute holding the inbound {@link ExchangeContext}. */
     public static final String REQUEST_ATTRIBUTE = "traffictape.exchangeContext";
+    /** Reactor context key holding the inbound {@link ExchangeContext}. */
     public static final String REACTOR_KEY = "traffictape.exchangeContext";
+    /** Reactor context key marking an exchange whose capture is suppressed. */
     public static final String REACTOR_SUPPRESSED_KEY = "traffictape.suppressed";
 
     private static final ThreadLocal<ExchangeContext> CURRENT = new ThreadLocal<>();
@@ -26,27 +29,48 @@ public final class CaptureContexts {
     private CaptureContexts() {
     }
 
+    /**
+     * Excludes the current thread from capture, including any outbound calls it makes.
+     */
     public static void suppress() {
         SUPPRESSED.set(Boolean.TRUE);
     }
 
+    /**
+     * @return {@code true} if capture is suppressed for the current thread
+     */
     public static boolean suppressed() {
         return Boolean.TRUE.equals(SUPPRESSED.get());
     }
 
+    /**
+     * Binds the inbound exchange that outbound hops on this thread correlate to.
+     *
+     * @param context the inbound exchange
+     */
     public static void set(ExchangeContext context) {
         CURRENT.set(context);
     }
 
+    /**
+     * @return the inbound exchange bound to this thread, or {@code null} if none
+     */
     public static ExchangeContext current() {
         return CURRENT.get();
     }
 
+    /**
+     * Marks entry into a RestClient/RestTemplate hop so OkHttp, acting only as the
+     * transport beneath them, does not record the same call again. Reentrant.
+     */
     public static void beginSpringOutbound() {
         Integer depth = SPRING_OUTBOUND.get();
         SPRING_OUTBOUND.set(depth == null ? 1 : depth + 1);
     }
 
+    /**
+     * Marks exit from a RestClient/RestTemplate hop opened by {@link #beginSpringOutbound()}.
+     */
     public static void endSpringOutbound() {
         Integer depth = SPRING_OUTBOUND.get();
         if (depth == null || depth <= 1) {
@@ -56,11 +80,18 @@ public final class CaptureContexts {
         }
     }
 
+    /**
+     * @return {@code true} while a RestClient/RestTemplate hop is recording this call
+     */
     public static boolean springOutboundActive() {
         Integer depth = SPRING_OUTBOUND.get();
         return depth != null && depth > 0;
     }
 
+    /**
+     * Drops all state for the current thread. Must run at the end of every request so
+     * nothing leaks into the next request served by a pooled thread.
+     */
     public static void clear() {
         CURRENT.remove();
         SPRING_OUTBOUND.remove();

@@ -11,6 +11,7 @@
     <artifactId>traffictape-sink-cloudwatch</artifactId>
     <name>traffictape-sink-cloudwatch</name>
     <description>CloudWatch Logs transport for TrafficTape. Batched PutLogEvents; not the canonical corpus.</description>
+    <url>https://github.com/arun0009/traffictape</url>
 
     <dependencies>
         <dependency>
