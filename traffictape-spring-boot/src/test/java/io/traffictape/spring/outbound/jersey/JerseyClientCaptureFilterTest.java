@@ -71,4 +71,32 @@ class JerseyClientCaptureFilterTest {
         assertThat(tx.request().body().encoding()).isEqualTo(BodyEncoding.OMITTED);
         assertThat(tx.request().body().sizeBytes()).isGreaterThan(8);
     }
+
+    @Test
+    void capturesJsonPojoEntityNotOnlyString() throws Exception {
+        CaptureQueue queue = new CaptureQueue(10);
+        CaptureEngine engine = CaptureEngine.createDefault(queue, 10);
+        JerseyClientCaptureFilter filter = new JerseyClientCaptureFilter(engine, new TrafficTapeProperties());
+
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse()
+                    .setResponseCode(201)
+                    .setHeader("Content-Type", "application/json")
+                    .setBody("{\"id\":\"9\"}"));
+            server.start();
+            try (Client client = ClientBuilder.newClient()
+                    .register(filter)
+                    .register(org.glassfish.jersey.jackson.JacksonFeature.class)) {
+                client.target(server.url("/ledger").uri())
+                        .request()
+                        .post(Entity.entity(java.util.Map.of("sku", "abc"), MediaType.APPLICATION_JSON_TYPE))
+                        .close();
+            }
+            assertThat(server.takeRequest().getBody().readUtf8()).contains("sku");
+        }
+
+        HttpTransaction tx = queue.drain(1).get(0);
+        assertThat(tx.request().body().body().toString()).contains("sku");
+        assertThat(tx.response().body().body().toString()).contains("id");
+    }
 }

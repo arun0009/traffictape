@@ -105,7 +105,7 @@ Need a different store or redaction rule? Expose a `@Bean` of `CaptureSink` or `
 
 - Inbound: Spring MVC or JAX-RS/Jersey as a servlet. Not WebFlux.
 - Async servlet (`DeferredResult`, `Callable`) does not link outbound calls to the parent request.
-- WebClient request bodies are not captured (responses are). JAX-RS client request entities are captured only when they are already a `String` or `byte[]`.
+- SSE responses are metadata only (no body tee).
 - Plain text is not field-redacted. Broken JSON is dropped, not stored raw.
 
 ## Docs

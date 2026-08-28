@@ -5,22 +5,25 @@ import io.traffictape.spring.CaptureContexts;
 import io.traffictape.spring.TrafficTapeProperties;
 import io.traffictape.spring.outbound.BoundedPrefix;
 import io.traffictape.spring.outbound.OutboundObservation;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.client.ClientResponseContext;
 import jakarta.ws.rs.client.ClientResponseFilter;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.ext.Provider;
+import jakarta.ws.rs.ext.WriterInterceptor;
+import jakarta.ws.rs.ext.WriterInterceptorContext;
 
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.util.List;
 
 /**
- * JAX-RS client filter. Request entity is kept when it is already a {@code String} or
- * {@code byte[]}; a POJO is recorded without a body (same gap as WebClient requests).
+ * JAX-RS client filter. Request bytes are teed as the {@code MessageBodyWriter} writes
+ * them, so a JSON POJO is captured the same way as a {@code String} entity.
  */
 @Provider
-public final class JerseyClientCaptureFilter implements ClientRequestFilter, ClientResponseFilter {
+public final class JerseyClientCaptureFilter implements ClientRequestFilter, ClientResponseFilter, WriterInterceptor {
 
     private static final String SKIP = "traffictape.jersey.skip";
     private static final String START = "traffictape.jersey.start";
@@ -45,7 +48,22 @@ public final class JerseyClientCaptureFilter implements ClientRequestFilter, Cli
         request.setProperty(START, System.nanoTime());
         var ctx = CaptureContexts.current();
         request.setProperty(SEQUENCE, ctx == null ? null : ctx.nextOutboundSequence());
-        request.setProperty(BODY, snapshotRequest(request, properties.getMaxRequestBytes()));
+    }
+
+    @Override
+    public void aroundWriteTo(WriterInterceptorContext context) throws IOException, WebApplicationException {
+        if (Boolean.TRUE.equals(context.getProperty(SKIP))) {
+            context.proceed();
+            return;
+        }
+        BoundedPrefix.Tee tee = BoundedPrefix.tee(context.getOutputStream(), properties.getMaxRequestBytes());
+        context.setOutputStream(tee);
+        try {
+            context.proceed();
+        } finally {
+            context.setProperty(BODY, new OutboundObservation.CappedBody(
+                    tee.captured(), tee.truncated(), tee.size()));
+        }
     }
 
     @Override
@@ -74,19 +92,6 @@ public final class JerseyClientCaptureFilter implements ClientRequestFilter, Cli
         } finally {
             CaptureContexts.endSpringOutbound();
         }
-    }
-
-    private static OutboundObservation.CappedBody snapshotRequest(ClientRequestContext request, int maxBytes) {
-        Object entity = request.getEntity();
-        byte[] raw;
-        if (entity instanceof byte[] bytes) {
-            raw = bytes;
-        } else if (entity instanceof String text) {
-            raw = text.getBytes(StandardCharsets.UTF_8);
-        } else {
-            return OutboundObservation.CappedBody.empty();
-        }
-        return OutboundObservation.capBody(raw, maxBytes);
     }
 
     private static String header(MultivaluedMap<String, String> headers, String name) {
