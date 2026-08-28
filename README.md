@@ -43,9 +43,9 @@ Pin `${traffictape.version}` to the Maven Central badge. Grab the CLI `-all` jar
 
 ## Why
 
-Your tests cover the paths you remembered. Real traffic shows the rest: a `PATCH` that sometimes sends `{status}` and sometimes `{owner}`, a `404` a real client hits, two backend calls that belong to one request.
+Hand-written stubs are the paths you remembered. A full recording is a dump. TrafficTape sits in between.
 
-TrafficTape groups those into *scenarios* (same route, different request shape or status) and keeps a few examples of each, not every request.
+Real HTTP has a `PATCH` that sends `{status}` or `{owner}`, a `404` a client actually hits, two backend calls that belong to one request. TrafficTape groups that into *scenarios* — same route, different shape or status — and keeps a few examples of each. Outbound calls stay on the inbound request that caused them.
 
 ```text
 PATCH /assets/{id}
@@ -57,7 +57,7 @@ POST /orders
   → POST /ledger
 ```
 
-First 10 examples per scenario (configurable). Counts continue after bodies stop.
+`generate` writes WireMock stubs for the outbound calls and a test plan for the inbound ones. Then you throw the recorder away.
 
 ## Capture in QA
 
