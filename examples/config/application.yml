@@ -4,7 +4,6 @@ spring:
 
 traffictape:
   enabled: false
-  max-examples-per-scenario: 50
   plateau-after: 6h
   output:
     directory: /tmp/traffic-tape

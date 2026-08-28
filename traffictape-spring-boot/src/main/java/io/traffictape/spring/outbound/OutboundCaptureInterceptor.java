@@ -1,9 +1,7 @@
 package io.traffictape.spring.outbound;
 
 import io.traffictape.capture.CaptureEngine;
-import io.traffictape.capture.ObservedExchange;
 import io.traffictape.correlation.ExchangeContext;
-import io.traffictape.model.Direction;
 import io.traffictape.spring.CaptureContexts;
 import io.traffictape.spring.TrafficTapeProperties;
 import org.springframework.http.HttpHeaders;
@@ -13,30 +11,15 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.SequenceInputStream;
-import java.net.URI;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
-/**
- * Shared RestClient / RestTemplate interceptor. Request body is already a byte[].
- * Response: copy a capped prefix; the application still reads the full stream.
- */
+/** Shared RestClient / RestTemplate interceptor. */
 public final class OutboundCaptureInterceptor implements ClientHttpRequestInterceptor {
 
     private final CaptureEngine engine;
     private final TrafficTapeProperties properties;
 
-    /**
-     * @param engine receives observed exchanges
-     * @param properties destination naming and body size caps
-     */
     public OutboundCaptureInterceptor(CaptureEngine engine, TrafficTapeProperties properties) {
         this.engine = engine;
         this.properties = properties;
@@ -74,94 +57,44 @@ public final class OutboundCaptureInterceptor implements ClientHttpRequestInterc
             Integer sequence,
             long startNanos) {
         try {
-            URI uri = request.getURI();
-            String path = uri.getRawPath() == null ? "/" : uri.getRawPath();
-            String host = uri.getHost();
-            if (host != null && uri.getPort() > 0) {
-                host = host + ":" + uri.getPort();
-            }
-            byte[] req = body == null ? new byte[0] : body;
-            boolean reqTrunc = req.length > properties.getMaxRequestBytes();
-            if (reqTrunc) {
-                req = Arrays.copyOf(req, properties.getMaxRequestBytes());
-            }
-            engine.record(ObservedExchange.builder()
-                    .direction(Direction.OUTBOUND)
-                    .timestamp(Instant.now())
-                    .method(request.getMethod().name())
-                    .path(path)
-                    .destination(properties.destinationName(host))
-                    .query(ObservedExchange.parseQuery(uri.getRawQuery()))
-                    .requestHeaders(headers(request.getHeaders()))
-                    .requestContentType(contentType(request.getHeaders()))
-                    .requestBody(req)
-                    .requestTruncated(reqTrunc)
-                    .requestDeclaredSize(body == null ? 0L : (long) body.length)
-                    .status(response.getStatusCode().value())
-                    .responseHeaders(headers(response.getHeaders()))
-                    .responseContentType(contentType(response.getHeaders()))
-                    .responseBody(response.captured())
-                    .responseTruncated(response.truncated())
-                    .responseDeclaredSize(response.declaredSize())
-                    .latencyMs((System.nanoTime() - startNanos) / 1_000_000L)
-                    .exchangeContext(ctx)
-                    .outboundSequence(sequence)
-                    .build());
-        } catch (Throwable ignored) {
+            OutboundObservation.CappedBody req = OutboundObservation.capBody(body, properties.getMaxRequestBytes());
+            OutboundObservation.record(
+                    engine, properties,
+                    request.getMethod().name(), request.getURI(),
+                    OutboundObservation.copyHeaders(request.getHeaders()),
+                    OutboundObservation.copyHeaders(response.getHeaders()),
+                    request.getHeaders().getFirst(HttpHeaders.CONTENT_TYPE),
+                    response.getHeaders().getFirst(HttpHeaders.CONTENT_TYPE),
+                    req.bytes(), req.truncated(), req.declaredSize(),
+                    response.captured(), response.truncated(), response.declaredSize(),
+                    response.getStatusCode().value(), startNanos, ctx, sequence);
+        } catch (Exception ignored) {
         }
-    }
-
-    private static String contentType(HttpHeaders headers) {
-        return headers.getFirst(HttpHeaders.CONTENT_TYPE);
-    }
-
-    private static Map<String, List<String>> headers(HttpHeaders headers) {
-        Map<String, List<String>> out = new LinkedHashMap<>();
-        headers.forEach((k, v) -> out.put(k, List.copyOf(v)));
-        return out;
     }
 
     static final class PrefixResponse implements ClientHttpResponse {
         private final ClientHttpResponse delegate;
-        private final byte[] captured;
-        private final boolean truncated;
-        private final long declaredSize;
-        private final InputStream body;
+        private final BoundedPrefix prefix;
 
-        private PrefixResponse(
-                ClientHttpResponse delegate,
-                byte[] captured,
-                boolean truncated,
-                long declaredSize,
-                InputStream body) {
+        private PrefixResponse(ClientHttpResponse delegate, BoundedPrefix prefix) {
             this.delegate = delegate;
-            this.captured = captured;
-            this.truncated = truncated;
-            this.declaredSize = declaredSize;
-            this.body = body;
+            this.prefix = prefix;
         }
 
         static PrefixResponse wrap(ClientHttpResponse response, int maxBytes) throws IOException {
-            InputStream in = response.getBody();
-            byte[] prefix = in.readNBytes(maxBytes + 1);
-            boolean truncated = prefix.length > maxBytes;
-            byte[] captured = truncated ? Arrays.copyOf(prefix, maxBytes) : prefix;
-            InputStream app = truncated
-                    ? new SequenceInputStream(new ByteArrayInputStream(captured), in)
-                    : new ByteArrayInputStream(prefix);
-            return new PrefixResponse(response, captured, truncated, truncated ? maxBytes + 1L : prefix.length, app);
+            return new PrefixResponse(response, BoundedPrefix.copy(response.getBody(), maxBytes));
         }
 
         byte[] captured() {
-            return captured;
+            return prefix.captured();
         }
 
         boolean truncated() {
-            return truncated;
+            return prefix.truncated();
         }
 
         long declaredSize() {
-            return declaredSize;
+            return prefix.declaredSize();
         }
 
         @Override
@@ -177,7 +110,7 @@ public final class OutboundCaptureInterceptor implements ClientHttpRequestInterc
         @Override
         public void close() {
             try {
-                body.close();
+                prefix.stream().close();
             } catch (IOException ignored) {
             }
             delegate.close();
@@ -190,7 +123,7 @@ public final class OutboundCaptureInterceptor implements ClientHttpRequestInterc
 
         @Override
         public InputStream getBody() {
-            return body;
+            return prefix.stream();
         }
     }
 }

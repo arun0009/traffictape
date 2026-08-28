@@ -36,7 +36,7 @@ class ObjectStoreCaptureSinkTest {
                 "statistics.json",
                 "gaps.json",
                 "fanout.json",
-                "FOR_CLAUDE.md",
+                "README.md",
                 "events/events-000001.jsonl.gz");
         String jsonl;
         try (GZIPInputStream in = new GZIPInputStream(new ByteArrayInputStream(store.get("events/events-000001.jsonl.gz")))) {

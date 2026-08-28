@@ -31,6 +31,24 @@ class AsyncCaptureWorkerTest {
     }
 
     @Test
+    void retriesATransientSinkFailure() throws Exception {
+        CaptureQueue queue = new CaptureQueue(10);
+        InMemoryCaptureSink sink = new InMemoryCaptureSink();
+        sink.failTimes(2);
+        StatisticsRegistry stats = new StatisticsRegistry(100);
+        AsyncCaptureWorker worker = new AsyncCaptureWorker(
+                queue, sink, stats, CaptureMetrics.NOOP, 10, 1024,
+                Duration.ofMillis(20), Duration.ofSeconds(1));
+        worker.start();
+        queue.offer(tx());
+        Thread.sleep(400);
+        worker.close();
+        assertThat(sink.written()).hasSize(1);
+        assertThat(stats.writeErrors()).isEqualTo(2);
+        assertThat(stats.lostEvents()).isZero();
+    }
+
+    @Test
     void writesBatchToSink() throws Exception {
         CaptureQueue queue = new CaptureQueue(10);
         InMemoryCaptureSink sink = new InMemoryCaptureSink();

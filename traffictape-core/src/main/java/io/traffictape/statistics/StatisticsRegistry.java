@@ -33,9 +33,10 @@ public final class StatisticsRegistry {
     private final LongAdder dropped = new LongAdder();
     private final LongAdder bytesCaptured = new LongAdder();
     private final LongAdder writeErrors = new LongAdder();
+    private final LongAdder lostEvents = new LongAdder();
 
     public StatisticsRegistry(int maxUniqueFingerprints) {
-        this(maxUniqueFingerprints, 50, DEFAULT_PLATEAU_AFTER, Clock.systemUTC());
+        this(maxUniqueFingerprints, 10, DEFAULT_PLATEAU_AFTER, Clock.systemUTC());
     }
 
     public StatisticsRegistry(int maxUniqueFingerprints, int maxExamplesPerScenario, Duration plateauAfter) {
@@ -111,6 +112,12 @@ public final class StatisticsRegistry {
         writeErrors.increment();
     }
 
+    public void recordLost(long events) {
+        if (events > 0) {
+            lostEvents.add(events);
+        }
+    }
+
     public long observed() {
         return observed.sum();
     }
@@ -131,6 +138,10 @@ public final class StatisticsRegistry {
         return writeErrors.sum();
     }
 
+    public long lostEvents() {
+        return lostEvents.sum();
+    }
+
     public int uniqueEndpoints() {
         return endpoints.size();
     }
@@ -148,6 +159,8 @@ public final class StatisticsRegistry {
                 captured.sum(),
                 dropped.sum(),
                 bytesCaptured.sum(),
+                writeErrors.sum(),
+                lostEvents.sum(),
                 ranked(endpoints),
                 scenarioSnaps,
                 lastNew,
@@ -210,6 +223,8 @@ public final class StatisticsRegistry {
             long capturedEvents,
             long droppedEvents,
             long bytesCaptured,
+            long writeErrors,
+            long lostEvents,
             List<MutableStats.Snapshot> endpoints,
             List<MutableStats.Snapshot> scenarios,
             Instant lastNewScenarioAt,

@@ -1,14 +1,14 @@
 package io.traffictape.corpus;
 
 /** Read-this-first note written next to the recorded events. */
-public final class ForClaude {
+public final class CorpusReadme {
 
-    public static final String FILENAME = "FOR_CLAUDE.md";
+    public static final String FILENAME = "README.md";
 
     public static final String TEXT = """
-            # TrafficTape — read this first
+            # TrafficTape corpus — read this first
 
-            Observed QA HTTP, not a spec and not generated tests.
+            Observed HTTP, not a spec and not generated tests.
 
             - `statistics.json` — every scenario seen (counts continue after bodies stop). `captureReady` = no new scenario for `plateau-after`.
             - `gaps.json` — ranked; `bodiesComplete` = min(count, N) examples kept.
@@ -20,6 +20,6 @@ public final class ForClaude {
             CloudWatch: `filter eventType = "STATISTICS"` (latest) and `filter eventType = "HTTP_TRANSACTION"`.
             """;
 
-    private ForClaude() {
+    private CorpusReadme() {
     }
 }

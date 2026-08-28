@@ -10,12 +10,12 @@ defaults silently stops redacting passwords and card numbers.
 ```yaml
 traffictape:
   enabled: false
-  max-examples-per-scenario: 50
+  max-examples-per-scenario: 10
   plateau-after: 6h
-  max-request-bytes: 1048576
-  max-response-bytes: 1048576
-  queue-size: 100000
-  max-unique-fingerprints: 50000
+  max-request-bytes: 65536
+  max-response-bytes: 65536
+  queue-size: 2000
+  max-unique-fingerprints: 10000
   shutdown-drain: 5s
   flush:
     interval: 30s
@@ -61,7 +61,7 @@ Safe default: **omit** rather than capture. Tighten `include.headers` / `include
 
 `redaction.json-fields` is applied to JSON fields at any depth, XML elements and attributes, and form-urlencoded pairs. See [redaction](redaction.md) for what each format covers and what it does not.
 
-`max-examples-per-scenario` stops bodies per scenario. `plateau-after` (default 6h) sets `captureReady` when no new unique scenario appears. Later new scenarios still get their own N.
+`max-examples-per-scenario` (default 10) stops bodies per scenario. The sampler keys on endpoint fingerprint + request shape + response status — not a 2xx quota. `plateau-after` (default 6h) sets `captureReady` when no new unique scenario appears. Later new scenarios still get their own N.
 
 ## Excluding synthetic traffic
 
@@ -178,7 +178,7 @@ Task role needs `s3:PutObject`. Do not point four tasks at one key: default `uni
 
 ```text
 s3://qa-traffic-tape/payments-api/2026-08-27/{hostname}/
-  FOR_CLAUDE.md
+  README.md
   metadata.json
   statistics.json
   gaps.json

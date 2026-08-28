@@ -1,10 +1,10 @@
 package io.traffictape.sink.s3;
 
-import java.net.InetAddress;
+import io.traffictape.InstanceIds;
+
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Locale;
-import java.util.UUID;
 
 /**
  * Builds an S3 key prefix. Four Fargate tasks must not share {@code events-000001.jsonl.gz}.
@@ -19,26 +19,11 @@ final class InstancePrefix {
         if (!properties.isUniquePerInstance()) {
             return base;
         }
-        return base + "/" + LocalDate.now(ZoneOffset.UTC) + "/" + sanitize(instanceId());
+        return base + "/" + LocalDate.now(ZoneOffset.UTC) + "/" + sanitize(InstanceIds.current());
     }
 
     static String instanceId() {
-        String host = firstNonBlank(
-                System.getenv("HOSTNAME"),
-                System.getenv("COMPUTERNAME"),
-                localHostName());
-        if (host == null || host.isBlank() || "localhost".equalsIgnoreCase(host)) {
-            return UUID.randomUUID().toString().substring(0, 8);
-        }
-        return host;
-    }
-
-    private static String localHostName() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (Exception e) {
-            return null;
-        }
+        return InstanceIds.current();
     }
 
     static String trimSlashes(String value) {
@@ -64,14 +49,6 @@ final class InstancePrefix {
     }
 
     private static String firstNonBlank(String... values) {
-        if (values == null) {
-            return "";
-        }
-        for (String value : values) {
-            if (value != null && !value.isBlank()) {
-                return value;
-            }
-        }
-        return "";
+        return InstanceIds.firstNonBlank(values);
     }
 }

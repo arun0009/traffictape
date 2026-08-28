@@ -12,8 +12,7 @@ on:
       - main
 
 permissions:
-  contents: write
-  security-events: write
+  contents: read
 
 jobs:
   build:
@@ -21,7 +20,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 17 is the supported baseline; 21 guards against forward-compatibility breaks.
         java-version:
           - 17.x
           - 21.x
@@ -37,7 +35,19 @@ jobs:
       - name: Build with Maven
         run: ./mvnw -B package --file pom.xml
 
+  dependency-graph:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          java-version: 17.x
+          distribution: 'liberica'
+          cache: maven
       - name: Update dependency graph
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.java-version == '17.x'
         continue-on-error: true
         uses: advanced-security/maven-dependency-submission-action@v5

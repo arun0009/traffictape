@@ -38,7 +38,4 @@ public interface CaptureMetrics {
 
     default void recordError() {
     }
-
-    default void setEnabled(boolean enabled) {
-    }
 }

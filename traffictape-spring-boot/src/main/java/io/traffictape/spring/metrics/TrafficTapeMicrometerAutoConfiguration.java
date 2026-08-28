@@ -23,8 +23,6 @@ class TrafficTapeMicrometerAutoConfiguration {
     @ConditionalOnBean(MeterRegistry.class)
     @ConditionalOnMissingBean(CaptureMetrics.class)
     CaptureMetrics trafficTapeMicrometerMetrics(MeterRegistry registry) {
-        CaptureMetrics metrics = new MicrometerCaptureMetrics(registry);
-        metrics.setEnabled(true);
-        return metrics;
+        return new MicrometerCaptureMetrics(registry);
     }
 }

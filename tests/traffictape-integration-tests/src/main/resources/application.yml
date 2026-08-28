@@ -13,9 +13,9 @@ management:
 
 traffictape:
   enabled: true
-  max-examples-per-scenario: 50
-  max-request-bytes: 1048576
-  max-response-bytes: 1048576
+  max-examples-per-scenario: 10
+  max-request-bytes: 65536
+  max-response-bytes: 65536
   queue-size: 10000
   flush:
     interval: 5s

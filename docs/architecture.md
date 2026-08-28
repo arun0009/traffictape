@@ -1,90 +1,51 @@
 # Architecture
 
-TrafficTape records real HTTP behavior into a portable corpus. Spring Boot is an adapter.
+TrafficTape records HTTP into a portable corpus. Spring Boot is the shipping adapter.
 
 ```text
-                    TrafficTape
-                        │
-                 HTTP Capture Model
-                 (traffictape-core)
-                        │
-                ┌───────┴────────┐
-                │                │
-          Java/Spring         future:
-           adapter            Go / Node
-                │                │
-                └───────┬────────┘
-                        ▼
-                  Traffic Corpus
-                        │
-              ┌─────────┼─────────┐
-              ▼         ▼         ▼
-           Claude     Replay    Analysis
-              │
-          ┌───┴────┐
-          ▼        ▼
-       Karate   WireMock
+  Spring MVC / Jersey / RestClient / RestTemplate / WebClient / OkHttp / JAX-RS Client
+                                    │
+                                    ▼
+                         CaptureEngine.record
+                                    │
+              policy → fingerprint → stats → sampler → redact → queue
+                                    │
+                          AsyncCaptureWorker
+                                    │
+                    File (canonical) / S3 / CloudWatch
+                                    │
+                                    ▼
+                    CLI → WireMock + test-plan.json + JUnit skeleton
 ```
 
-## Capture path (Spring)
+The worker batches: **1000 events**, **50 MB**, or **30s** (`traffictape.flush`). A sink never sees one event on the request thread. File is the reference corpus. S3 is the same tree in a bucket. CloudWatch is a JSON-line transport when a bucket is blocked; the CLI can still read a dump.
+
+## Capture path
 
 ```text
-inbound Filter / Jersey @Path, RestClient, RestTemplate, WebClient, OkHttp, JAX-RS Client
-        │
-        ▼
-  CaptureEngine.record(ObservedExchange)
-        │
-        ├── policy (method/route/content-type/destination)
-        ├── endpoint + scenario fingerprints
-        ├── statistics (always) + fan-out graph
-        ├── sampler (per scenario key)
+adapter → ObservedExchange → CaptureEngine.record()  (never throws)
+        ├── policy
+        ├── fingerprints + statistics (always)
+        ├── sampler (bodies only; a failed enqueue refunds the slot)
         ├── redact
         └── queue.offer        ← never put(), never block
                 │
                 ▼
-         AsyncCaptureWorker
-                │
-                ▼
-            CaptureSink.write(CaptureBatch)
-                │
-     ┌──────────┼──────────────┐
-     ▼          ▼              ▼
-   File       S3          CloudWatch
-  (in core)  (sink-s3)    (sink-cloudwatch)
+         worker → CaptureSink.write(CaptureBatch)
+                   (up to 3 attempts; then lostEvents++)
 ```
 
-The worker already batches: **1000 events**, **50&nbsp;MB**, or **30s** (configurable `traffictape.flush`). A sink never sees one event on the request thread. File is the reference corpus. CloudWatch is the Fargate path when S3 is blocked. S3 is the file tree when a bucket is allowed.
+## Extending
 
-## Extending (one SPI, one `@Bean`)
+The SPIs most people replace are **`CaptureSink`** and **`Redactor`**. Also overridable: `Fingerprinter`, `Sampler`, `PathNormalizer`, `CaptureMetrics`.
 
-Core is the engine. Adding a backend or strategy should not touch `CaptureEngine`.
+Wire any of them as a `@Bean`. `@ConditionalOnMissingBean` skips the default.
 
-| Extension | Implement | Wire |
-|---|---|---|
-| S3 / CloudWatch / anything else | `CaptureSink` | `@Bean CaptureSink` |
-| Custom scenario identity | `Fingerprinter` | `@Bean Fingerprinter` |
-| Custom sampling | `Sampler` | `@Bean Sampler` |
-| Metrics backend | `CaptureMetrics` | `@Bean CaptureMetrics` |
-| PII / value-shaped detection | `Redactor` (usually extend `DefaultRedactor`) | `@Bean Redactor` |
-| Org-specific ID shapes in URLs | `PathNormalizer` (usually extend `DefaultPathNormalizer`) | `@Bean PathNormalizer` |
-| Quarkus / servlet / Go | build `ObservedExchange`, call `record` | adapter module |
-
-Spring defaults back off via `@ConditionalOnMissingBean`. User beans win; core does not change.
-
-A new runtime adapter is:
-
-```java
-captureEngine.record(ObservedExchange.builder()
-        .direction(Direction.INBOUND)
-        .method(method)
-        .path(path)
-        .status(status)
-        .build());
-```
+A new runtime adapter builds `ObservedExchange` and calls `record`. Do not add framework types to `traffictape-core`.
 
 ## Fail-open
 
-Every adapter and `CaptureEngine.record` swallows capture failures. A full queue drops the event. A dead worker or throwing sink does not fail the application request.
+Every adapter and `CaptureEngine.record` swallows capture failures. A full queue drops the event and refunds the sampler slot. After retries, lost batches increment `lostEvents` (actuator + `metadata.json`).
 
 ## Disabled mode
 

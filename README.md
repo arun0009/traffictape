@@ -14,23 +14,38 @@
 
 </div>
 
-Add this to a Spring Boot service in QA. It records inbound requests and the outbound calls they make, redacts secrets, and writes a small set of examples to disk. Copy the files, generate WireMock or Mountebank stubs, then remove the dependency.
+Add this in **test scope**, run the suite you already have, generate WireMock stubs. No QA environment required.
 
 It is not a logger and it does not stay in production.
 
-```yaml
-traffictape:
-  enabled: true
-  max-examples-per-scenario: 50
-  output:
-    directory: /tmp/traffic-tape
+```xml
+<dependency>
+    <groupId>io.github.arun0009</groupId>
+    <artifactId>traffictape-spring-boot</artifactId>
+    <version>${traffictape.version}</version>
+    <scope>test</scope>
+</dependency>
 ```
 
-Off by default. If capture breaks, the app still serves traffic.
+```yaml
+# src/test/resources/application.yml
+traffictape:
+  enabled: true
+  output:
+    directory: target/traffic-tape
+```
+
+```bash
+mvn test
+java -jar traffictape-cli-${traffictape.version}-all.jar generate \
+  --corpus target/traffic-tape --out ./out
+```
+
+Off by default in a real app. If capture breaks, the app still serves traffic.
 
 ## Why
 
-Your tests cover the paths you remembered. QA traffic shows the rest: a `PATCH` that sometimes sends `{status}` and sometimes `{owner}`, a `404` a real client hits, two backend calls that belong to one request.
+Your tests cover the paths you remembered. Real traffic shows the rest: a `PATCH` that sometimes sends `{status}` and sometimes `{owner}`, a `404` a real client hits, two backend calls that belong to one request.
 
 TrafficTape groups those into *scenarios* (same route, different request shape or status) and keeps a few examples of each, not every request.
 
@@ -44,17 +59,11 @@ POST /orders
   → POST /ledger
 ```
 
-## Install
+First 10 examples per scenario (configurable). Counts continue after bodies stop.
 
-Java 17+, Spring Boot 3.x. Inbound: Spring MVC **or** JAX-RS/Jersey on a servlet container. Same artifact.
+## Install (QA / a running service)
 
-```xml
-<dependency>
-    <groupId>io.github.arun0009</groupId>
-    <artifactId>traffictape-spring-boot</artifactId>
-    <version>${traffictape.version}</version>
-</dependency>
-```
+Java 17+, Spring Boot 3.x. Inbound: Spring MVC **or** JAX-RS/Jersey on a servlet container. Same artifact without `test` scope.
 
 Outbound capture needs an injected `RestClient.Builder`, `RestTemplateBuilder`, `WebClient.Builder`, an `OkHttpClient` Spring bean, or a JAX-RS `Client` Spring bean. `RestClient.create()`, `ClientBuilder.newClient()`, and a client you construct yourself are not recorded.
 
@@ -68,24 +77,16 @@ Add **one** of these. A sink includes the starter; do not add both.
 
 ```yaml
 traffictape:
-  enabled: false          # turn on in QA only
+  enabled: false
   output:
     directory: /tmp/traffic-tape
 ```
 
-Restart after changing `enabled`. [Configuration](docs/configuration.md).
+Restart after changing `enabled`. [Configuration](docs/configuration.md). Test-scope loop: [Capture from tests](docs/capture-from-tests.md).
 
-No QA environment yet? Enable it in test scope, run `mvn test`, then generate stubs. [Capture from tests](docs/capture-from-tests.md).
+In QA, leave it on until `/actuator/traffictape` reports `ready: true`, then copy the corpus and remove the dependency. Expose the endpoint with `management.endpoints.web.exposure.include: [health, traffictape]`.
 
-In QA, leave it on for a couple of days (nightly jobs included). Then:
-
-```console
-curl -s localhost:8080/actuator/traffictape
-```
-
-`ready: true` means no new behaviour for a while. Copy `/tmp/traffic-tape` and take the dependency out. Expose the endpoint with `management.endpoints.web.exposure.include: [health, traffictape]`.
-
-Fargate: [CloudWatch](docs/configuration.md#fargate--cloudwatch) or [S3](docs/configuration.md#fargate--s3).
+Fargate: [CloudWatch](docs/configuration.md#fargate--cloudwatch) or [S3](docs/configuration.md#fargate--s3). CloudWatch is a JSON-line transport; file and S3 are the canonical corpus tree.
 
 ## Generate stubs
 
@@ -96,21 +97,20 @@ java -jar traffictape-cli-${traffictape.version}-all.jar generate \
   --corpus /tmp/traffic-tape --out ./out
 ```
 
-Outbound calls become WireMock / Mountebank stubs. Inbound requests become rows in `test-plan.json` that name those stubs. [Generate](docs/generate.md).
+Writes WireMock mappings (default), `test-plan.json`, and a JUnit 5 replay skeleton. Mountebank: `--format mountebank`. [Generate](docs/generate.md).
 
-Need a different store, redaction rule, or URL id shape? Expose a `@Bean` of `CaptureSink`, `Redactor`, or `PathNormalizer`.
+Need a different store or redaction rule? Expose a `@Bean` of `CaptureSink` or `Redactor`.
 
 ## Limits
 
-- Inbound: Spring MVC, or JAX-RS/Jersey as a servlet. Not WebFlux.
+- Inbound: Spring MVC or JAX-RS/Jersey as a servlet. Not WebFlux.
 - Async servlet (`DeferredResult`, `Callable`) does not link outbound calls to the parent request.
 - WebClient request bodies are not captured (responses are). JAX-RS client request entities are captured only when they are already a `String` or `byte[]`.
 - Plain text is not field-redacted. Broken JSON is dropped, not stored raw.
-- The CLI writes stub files and a test plan. It does not generate Karate or JUnit.
 
 ## Docs
 
-[Architecture](docs/architecture.md) · [Capture from tests](docs/capture-from-tests.md) · [File format](docs/corpus-format.md) · [Generate](docs/generate.md) · [Configuration](docs/configuration.md) · [Sampling](docs/sampling.md) · [Redaction](docs/redaction.md)
+[Architecture](docs/architecture.md) · [Capture from tests](docs/capture-from-tests.md) · [File format](docs/corpus-format.md) · [Generate](docs/generate.md) · [Configuration](docs/configuration.md) · [Redaction](docs/redaction.md)
 
 ## Contributing
 

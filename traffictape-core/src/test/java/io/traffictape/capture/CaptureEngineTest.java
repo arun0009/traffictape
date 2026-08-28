@@ -60,6 +60,20 @@ class CaptureEngineTest {
     }
 
     @Test
+    void fullQueueRefundsSamplerSlot() {
+        CaptureQueue queue = new CaptureQueue(1);
+        CaptureEngine engine = CaptureEngine.createDefault(queue, 2);
+        engine.record(get("/accounts/1", 200));
+        engine.record(get("/accounts/2", 200));
+        assertThat(queue.size()).isEqualTo(1);
+        assertThat(engine.statistics().dropped()).isEqualTo(1);
+        queue.drain(1);
+        engine.record(get("/accounts/3", 200));
+        assertThat(queue.size()).isEqualTo(1);
+        assertThat(engine.statistics().captured()).isEqualTo(2);
+    }
+
+    @Test
     void skipsHealth() {
         CaptureQueue queue = new CaptureQueue(10);
         CaptureEngine engine = CaptureEngine.createDefault(queue, 10);

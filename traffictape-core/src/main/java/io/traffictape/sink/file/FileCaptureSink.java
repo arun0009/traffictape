@@ -28,7 +28,7 @@ import java.util.zip.GZIPOutputStream;
  * Writes:
  * <pre>
  *   {directory}/
- *     FOR_CLAUDE.md
+ *     README.md
  *     metadata.json
  *     statistics.json
  *     gaps.json

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/arun0009/traffictape/schema/http-transaction-v1.json",
+  "title": "TrafficTape HTTP_TRANSACTION",
+  "type": "object",
+  "required": ["schemaVersion", "eventType", "direction", "timestamp", "method", "route", "path"],
+  "properties": {
+    "schemaVersion": { "const": "1" },
+    "eventType": { "const": "HTTP_TRANSACTION" },
+    "direction": { "enum": ["INBOUND", "OUTBOUND"] },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "destination": { "type": ["string", "null"] },
+    "method": { "type": "string" },
+    "route": { "type": "string" },
+    "path": { "type": "string" },
+    "query": { "type": "object" },
+    "requestShape": { "type": "string" },
+    "responseCharacteristic": { "type": "string" },
+    "latencyMs": { "type": "integer" },
+    "correlation": { "type": "object" },
+    "fingerprints": { "type": "object" },
+    "request": { "type": "object" },
+    "response": { "type": "object" }
+  }
+}

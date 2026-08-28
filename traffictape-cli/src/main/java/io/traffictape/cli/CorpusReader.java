@@ -1,9 +1,8 @@
 package io.traffictape.cli;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.traffictape.capture.JsonSupport;
 import io.traffictape.model.EventType;
 import io.traffictape.model.HttpTransaction;
 
@@ -27,12 +26,10 @@ import java.util.zip.GZIPInputStream;
  */
 final class CorpusReader {
 
-    private final ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    private final ObjectMapper mapper = JsonSupport.lenientReader();
 
     record Result(List<HttpTransaction> transactions, int filesRead, int filesTruncated,
-                  int linesSkipped, int linesFailed) {
+                  int linesSkipped, int linesFailed, int schemaSkipped) {
     }
 
     Result read(Path source) throws IOException {
@@ -44,6 +41,7 @@ final class CorpusReader {
         int truncated = 0;
         int skipped = 0;
         int failed = 0;
+        int schemaSkipped = 0;
         for (Path file : files) {
             // A capture killed mid-flush leaves the last gzip member incomplete. Keep the events
             // that did make it rather than discarding the whole file.
@@ -64,6 +62,11 @@ final class CorpusReader {
                             skipped++;
                             continue;
                         }
+                        JsonNode version = node.get("schemaVersion");
+                        if (version != null && !HttpTransaction.SCHEMA_VERSION.equals(version.asText())) {
+                            schemaSkipped++;
+                            continue;
+                        }
                         HttpTransaction tx = mapper.treeToValue(node, HttpTransaction.class);
                         if (tx.method() == null) {
                             skipped++;
@@ -78,7 +81,7 @@ final class CorpusReader {
                 truncated++;
             }
         }
-        return new Result(transactions, files.size(), truncated, skipped, failed);
+        return new Result(transactions, files.size(), truncated, skipped, failed, schemaSkipped);
     }
 
     private static List<Path> resolveFiles(Path source) throws IOException {

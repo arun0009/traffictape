@@ -1,9 +1,7 @@
 package io.traffictape.cli;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.traffictape.capture.JsonSupport;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -16,10 +14,7 @@ import java.util.Map;
 /** Reads recorded events, writes mock definitions and a test plan, and reports what needs attention. */
 final class GenerateCommand {
 
-    private final ObjectWriter writer = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .writerWithDefaultPrettyPrinter();
+    private final ObjectWriter writer = JsonSupport.prettyWriter();
 
     int execute(TrafficTapeCli.Options options, PrintStream out) throws IOException {
         CorpusReader.Result read = new CorpusReader().read(options.corpus());
@@ -38,6 +33,9 @@ final class GenerateCommand {
         }
         if (read.linesFailed() > 0) {
             out.printf("  %d line(s) could not be parsed and were ignored.%n", read.linesFailed());
+        }
+        if (read.schemaSkipped() > 0) {
+            out.printf("  %d event(s) skipped (unsupported schemaVersion).%n", read.schemaSkipped());
         }
 
         Files.createDirectories(options.out());
@@ -81,6 +79,10 @@ final class GenerateCommand {
         Path testPlan = options.out().resolve("test-plan.json");
         write(testPlan, new TestPlanGenerator().generate(corpus));
         out.printf("Wrote %d test case(s) to %s%n", corpus.inboundScenarios().size(), testPlan);
+
+        Path junit = options.out().resolve("junit");
+        new JunitGenerator().write(junit);
+        out.printf("Wrote JUnit skeleton to %s%n", junit.resolve(JunitGenerator.CLASS_NAME));
 
         if (corpus.outboundScenarios().isEmpty()) {
             attention.add("No outbound calls were captured, so there is nothing to mock. "

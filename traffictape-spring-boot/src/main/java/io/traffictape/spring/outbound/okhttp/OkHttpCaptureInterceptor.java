@@ -1,13 +1,10 @@
 package io.traffictape.spring.outbound.okhttp;
 
 import io.traffictape.capture.CaptureEngine;
-import io.traffictape.capture.ObservedExchange;
-import io.traffictape.correlation.ExchangeContext;
-import io.traffictape.model.Direction;
 import io.traffictape.spring.CaptureContexts;
 import io.traffictape.spring.TrafficTapeProperties;
+import io.traffictape.spring.outbound.OutboundObservation;
 import okhttp3.Headers;
-import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -17,29 +14,19 @@ import okhttp3.ResponseBody;
 import okio.Buffer;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * OkHttp application interceptor. Copies a capped request body so the call can
- * still proceed; {@code peekBody} for the response. Capture errors never fail the call.
- *
- * <p>When RestClient/RestTemplate already recorded the hop, this interceptor
- * is a no-op so the same call is not stored twice.
+ * OkHttp application interceptor. When RestClient/RestTemplate already recorded the hop,
+ * this is a no-op so the same call is not stored twice.
  */
 public final class OkHttpCaptureInterceptor implements Interceptor {
 
     private final CaptureEngine engine;
     private final TrafficTapeProperties properties;
 
-    /**
-     * @param engine receives observed exchanges
-     * @param properties destination naming and body size caps
-     */
     public OkHttpCaptureInterceptor(CaptureEngine engine, TrafficTapeProperties properties) {
         this.engine = engine;
         this.properties = properties;
@@ -65,7 +52,7 @@ public final class OkHttpCaptureInterceptor implements Interceptor {
             outbound = original;
         }
         long start = System.nanoTime();
-        ExchangeContext ctx = CaptureContexts.current();
+        var ctx = CaptureContexts.current();
         Integer sequence = ctx == null ? null : ctx.nextOutboundSequence();
         Response response = chain.proceed(outbound);
         try {
@@ -81,18 +68,9 @@ public final class OkHttpCaptureInterceptor implements Interceptor {
             boolean requestTruncated,
             long requestSize,
             Response response,
-            ExchangeContext ctx,
+            io.traffictape.correlation.ExchangeContext ctx,
             Integer sequence,
             long startNanos) throws IOException {
-        HttpUrl url = request.url();
-        String path = url.encodedPath();
-        if (path == null || path.isBlank()) {
-            path = "/";
-        }
-        String host = url.host();
-        if (url.port() != HttpUrl.defaultPort(url.scheme())) {
-            host = host + ":" + url.port();
-        }
         byte[] responseCaptured = new byte[0];
         boolean responseTruncated = false;
         long responseSize = 0;
@@ -101,32 +79,19 @@ public final class OkHttpCaptureInterceptor implements Interceptor {
             int max = properties.getMaxResponseBytes();
             ResponseBody peeked = response.peekBody(max + 1L);
             byte[] raw = peeked.bytes();
-            responseSize = raw.length;
-            responseTruncated = raw.length > max;
-            responseCaptured = responseTruncated ? Arrays.copyOf(raw, max) : raw;
+            OutboundObservation.CappedBody capped = OutboundObservation.capBody(raw, max);
+            responseSize = capped.declaredSize();
+            responseTruncated = capped.truncated();
+            responseCaptured = capped.bytes();
         }
-        engine.record(ObservedExchange.builder()
-                .direction(Direction.OUTBOUND)
-                .timestamp(Instant.now())
-                .method(request.method())
-                .path(path)
-                .destination(properties.destinationName(host))
-                .query(query(url))
-                .requestHeaders(headers(request.headers()))
-                .requestContentType(contentType(request.body()))
-                .requestBody(requestBody)
-                .requestTruncated(requestTruncated)
-                .requestDeclaredSize(requestSize)
-                .status(response.code())
-                .responseHeaders(headers(response.headers()))
-                .responseContentType(responseCt)
-                .responseBody(responseCaptured)
-                .responseTruncated(responseTruncated)
-                .responseDeclaredSize(responseSize)
-                .latencyMs((System.nanoTime() - startNanos) / 1_000_000L)
-                .exchangeContext(ctx)
-                .outboundSequence(sequence)
-                .build());
+        OutboundObservation.record(
+                engine, properties,
+                request.method(), request.url().uri(),
+                headers(request.headers()), headers(response.headers()),
+                contentType(request.body()), responseCt,
+                requestBody, requestTruncated, requestSize,
+                responseCaptured, responseTruncated, responseSize,
+                response.code(), startNanos, ctx, sequence);
     }
 
     static CopiedRequest copyRequest(Request request, int maxBytes) throws IOException {
@@ -137,13 +102,12 @@ public final class OkHttpCaptureInterceptor implements Interceptor {
         Buffer buffer = new Buffer();
         body.writeTo(buffer);
         byte[] all = buffer.readByteArray();
-        boolean truncated = all.length > maxBytes;
-        byte[] captured = truncated ? Arrays.copyOf(all, maxBytes) : all;
+        OutboundObservation.CappedBody capped = OutboundObservation.capBody(all, maxBytes);
         MediaType mediaType = body.contentType();
         Request rebuilt = request.newBuilder()
                 .method(request.method(), RequestBody.create(all, mediaType))
                 .build();
-        return new CopiedRequest(rebuilt, captured, truncated, all.length);
+        return new CopiedRequest(rebuilt, capped.bytes(), capped.truncated(), capped.declaredSize());
     }
 
     private static boolean isStreaming(String contentType) {
@@ -169,14 +133,6 @@ public final class OkHttpCaptureInterceptor implements Interceptor {
         Map<String, List<String>> out = new LinkedHashMap<>();
         for (String name : headers.names()) {
             out.put(name, headers.values(name));
-        }
-        return out;
-    }
-
-    private static Map<String, List<String>> query(HttpUrl url) {
-        Map<String, List<String>> out = new LinkedHashMap<>();
-        for (String name : url.queryParameterNames()) {
-            out.put(name, new ArrayList<>(url.queryParameterValues(name)));
         }
         return out;
     }

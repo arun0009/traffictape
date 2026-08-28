@@ -1,11 +1,10 @@
 package io.traffictape.spring.outbound.webclient;
 
 import io.traffictape.capture.CaptureEngine;
-import io.traffictape.capture.ObservedExchange;
 import io.traffictape.correlation.ExchangeContext;
-import io.traffictape.model.Direction;
 import io.traffictape.spring.CaptureContexts;
 import io.traffictape.spring.TrafficTapeProperties;
+import io.traffictape.spring.outbound.OutboundObservation;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,11 +22,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.ByteArrayOutputStream;
-import java.net.URI;
-import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -132,39 +126,15 @@ final class WebClientCaptureFilter implements ExchangeFilterFunction {
             ExchangeContext ctx,
             Integer sequence,
             long startNanos) {
-        try {
-            URI uri = request.url();
-            String path = uri.getRawPath() == null ? "/" : uri.getRawPath();
-            String host = uri.getHost();
-            if (host != null && uri.getPort() > 0) {
-                host = host + ":" + uri.getPort();
-            }
-            engine.record(ObservedExchange.builder()
-                    .direction(Direction.OUTBOUND)
-                    .timestamp(Instant.now())
-                    .method(request.method().name())
-                    .path(path)
-                    .destination(properties.destinationName(host))
-                    .query(ObservedExchange.parseQuery(uri.getRawQuery()))
-                    .requestHeaders(toMap(request.headers()))
-                    .requestContentType(request.headers().getFirst("Content-Type"))
-                    .status(response.statusCode().value())
-                    .responseHeaders(toMap(response.headers().asHttpHeaders()))
-                    .responseContentType(response.headers().contentType().map(Object::toString).orElse(null))
-                    .responseBody(body)
-                    .responseTruncated(truncated)
-                    .responseDeclaredSize(size)
-                    .latencyMs((System.nanoTime() - startNanos) / 1_000_000L)
-                    .exchangeContext(ctx)
-                    .outboundSequence(sequence)
-                    .build());
-        } catch (Throwable ignored) {
-        }
-    }
-
-    private static Map<String, List<String>> toMap(org.springframework.http.HttpHeaders headers) {
-        Map<String, List<String>> out = new LinkedHashMap<>();
-        headers.forEach((k, v) -> out.put(k, List.copyOf(v)));
-        return out;
+        OutboundObservation.record(
+                engine, properties,
+                request.method().name(), request.url(),
+                OutboundObservation.copyHeaders(request.headers()),
+                OutboundObservation.copyHeaders(response.headers().asHttpHeaders()),
+                request.headers().getFirst("Content-Type"),
+                response.headers().contentType().map(Object::toString).orElse(null),
+                new byte[0], false, 0L,
+                body, truncated, size,
+                response.statusCode().value(), startNanos, ctx, sequence);
     }
 }

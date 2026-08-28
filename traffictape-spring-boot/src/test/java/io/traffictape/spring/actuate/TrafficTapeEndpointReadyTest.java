@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * When the plateau window is 1ms, an exchange with a body reports ready.
+ * When {@code plateau-after} is zero, an exchange with a body reports ready immediately.
  */
 @SpringBootTest(
         classes = TrafficTapeEndpointReadyTest.App.class,
@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 "traffictape.enabled=true",
                 "traffictape.output.directory=${java.io.tmpdir}/traffictape-endpoint-ready-it",
                 "traffictape.flush.interval=20ms",
-                "traffictape.plateau-after=1ms",
+                "traffictape.plateau-after=0ms",
                 "management.endpoints.web.exposure.include=traffictape"
         })
 @AutoConfigureMockMvc

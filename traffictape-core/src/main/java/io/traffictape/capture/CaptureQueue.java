@@ -32,6 +32,7 @@ public final class CaptureQueue {
         return queue.poll(timeout.toMillis(), TimeUnit.MILLISECONDS);
     }
 
+    /** Drains up to {@code max} events without waiting. Used by tests and the worker. */
     public List<HttpTransaction> drain(int max) {
         List<HttpTransaction> batch = new ArrayList<>(Math.min(max, queue.size()));
         queue.drainTo(batch, max);

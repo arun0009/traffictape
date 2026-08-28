@@ -59,7 +59,8 @@ public class TrafficTapeEndpoint {
         out.put("observedRequests", snapshot.observedRequests());
         out.put("capturedEvents", snapshot.capturedEvents());
         out.put("droppedEvents", snapshot.droppedEvents());
-        out.put("writeErrors", statistics.writeErrors());
+        out.put("lostEvents", snapshot.lostEvents());
+        out.put("writeErrors", snapshot.writeErrors());
         out.put("sinkDisabled", sink.isDisabled());
         out.put("bytesCaptured", snapshot.bytesCaptured());
         out.put("incomplete", describe(incomplete));

@@ -14,7 +14,7 @@ java -jar traffictape-cli-${traffictape.version}-all.jar generate \
 --corpus <path>   Corpus directory, its events/ directory, or a single
                   .jsonl/.jsonl.gz file (for example a CloudWatch dump).
 --out <dir>       Output directory. Default: ./traffictape-out
---format <f>      wiremock | mountebank | both. Default: both
+--format <f>      wiremock | mountebank | both. Default: wiremock
 --base-port <n>   First port for Mountebank imposters. Default: 4545
 ```
 
@@ -23,9 +23,9 @@ java -jar traffictape-cli-${traffictape.version}-all.jar generate \
 ```text
 traffictape-out/
   wiremock/mappings/*.json    one stub per outbound scenario
-  mountebank/imposters.json   one imposter per outbound destination
-  mountebank/ports.json       destination -> assigned port
+  mountebank/                 only with --format mountebank|both
   test-plan.json              one case per inbound scenario
+  junit/TrafficTapeReplayTest.java
 ```
 
 Run them:
@@ -54,7 +54,7 @@ Each case lists the outbound scenarios that the same inbound request caused, ord
 }
 ```
 
-`test-plan.json` is data, not test code. Generating Karate or JUnit from it is a small template job, and it is deliberately left to you or an LLM — see [AI workflow](ai-workflow.md).
+`test-plan.json` is data. `junit/TrafficTapeReplayTest.java` is a JUnit 5 parameterized skeleton that replays those cases against `TRAFFICTAPE_BASE_URL`. Start WireMock from `wiremock/` first.
 
 ## Deduplication
 

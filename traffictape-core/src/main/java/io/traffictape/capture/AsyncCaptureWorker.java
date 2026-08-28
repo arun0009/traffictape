@@ -111,13 +111,27 @@ public final class AsyncCaptureWorker implements AutoCloseable {
     }
 
     private void flush(List<HttpTransaction> batch) {
-        try {
-            sink.write(new CaptureBatch(List.copyOf(batch), statistics.snapshot()));
-        } catch (Throwable t) {
-            metrics.recordWriteError();
-            statistics.recordWriteError();
-            log.debug("TrafficTape sink write failed", t);
+        Throwable last = null;
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            try {
+                sink.write(new CaptureBatch(List.copyOf(batch), statistics.snapshot()));
+                return;
+            } catch (Throwable t) {
+                last = t;
+                metrics.recordWriteError();
+                statistics.recordWriteError();
+                if (attempt < 3) {
+                    try {
+                        Thread.sleep(50L * attempt);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
         }
+        statistics.recordLost(batch.size());
+        log.warn("TrafficTape sink write failed after retries; {} events lost", batch.size(), last);
     }
 
     private static long approx(HttpTransaction tx) {

@@ -26,7 +26,7 @@ public final class MicrometerCaptureMetrics implements CaptureMetrics {
     private final AtomicInteger queueSize = new AtomicInteger();
     private final AtomicInteger endpoints = new AtomicInteger();
     private final AtomicInteger scenarios = new AtomicInteger();
-    private final AtomicBoolean enabled = new AtomicBoolean();
+    private final AtomicBoolean enabled = new AtomicBoolean(true);
 
     /**
      * @param registry registry the meters are bound to
@@ -89,10 +89,5 @@ public final class MicrometerCaptureMetrics implements CaptureMetrics {
     @Override
     public void recordError() {
         errors.increment();
-    }
-
-    @Override
-    public void setEnabled(boolean value) {
-        enabled.set(value);
     }
 }

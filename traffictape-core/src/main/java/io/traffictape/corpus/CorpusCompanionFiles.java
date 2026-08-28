@@ -38,6 +38,8 @@ public final class CorpusCompanionFiles {
             meta.put("totalObservedRequests", snapshot.observedRequests());
             meta.put("totalCapturedEvents", snapshot.capturedEvents());
             meta.put("totalDroppedEvents", snapshot.droppedEvents());
+            meta.put("totalLostEvents", snapshot.lostEvents());
+            meta.put("writeErrors", snapshot.writeErrors());
             meta.put("bytesCaptured", snapshot.bytesCaptured());
             meta.put("captureReady", snapshot.captureReady());
             meta.put("lastNewScenarioAt", snapshot.lastNewScenarioAt() == null
@@ -48,7 +50,7 @@ public final class CorpusCompanionFiles {
 
     public static void writeSidecars(StatisticsRegistry.Snapshot snapshot, ObjectMapper mapper, Writer writer)
             throws IOException {
-        writer.write(ForClaude.FILENAME, ForClaude.TEXT.getBytes(StandardCharsets.UTF_8), "text/markdown");
+        writer.write(CorpusReadme.FILENAME, CorpusReadme.TEXT.getBytes(StandardCharsets.UTF_8), "text/markdown");
         if (snapshot == null) {
             return;
         }

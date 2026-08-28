@@ -43,8 +43,8 @@ class FileCaptureSinkTest {
         assertThat(temp.resolve("statistics.json")).exists();
         assertThat(temp.resolve("gaps.json")).exists();
         assertThat(temp.resolve("fanout.json")).exists();
-        assertThat(temp.resolve("FOR_CLAUDE.md")).exists();
-        assertThat(Files.readString(temp.resolve("FOR_CLAUDE.md"))).contains("read this first");
+        assertThat(temp.resolve("README.md")).exists();
+        assertThat(Files.readString(temp.resolve("README.md"))).contains("read this first");
         assertThat(Files.readString(temp.resolve("statistics.json"))).contains("captureReady");
         Path eventFile = temp.resolve("events").resolve("events-000001.jsonl.gz");
         assertThat(eventFile).exists();

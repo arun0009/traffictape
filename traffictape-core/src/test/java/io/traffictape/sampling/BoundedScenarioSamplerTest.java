@@ -57,4 +57,24 @@ class BoundedScenarioSamplerTest {
         assertThat(wins.get()).isEqualTo(5);
         assertThat(sampler.capturedCount(key)).isEqualTo(5);
     }
+
+    @Test
+    void releaseRefundsASlot() {
+        BoundedScenarioSampler sampler = new BoundedScenarioSampler(1);
+        ScenarioKey key = new ScenarioKey("ep", "none", "200");
+        assertThat(sampler.shouldCapture(key)).isTrue();
+        assertThat(sampler.shouldCapture(key)).isFalse();
+        sampler.release(key);
+        assertThat(sampler.shouldCapture(key)).isTrue();
+    }
+
+    @Test
+    void capsUniqueKeys() {
+        BoundedScenarioSampler sampler = new BoundedScenarioSampler(1, 16);
+        for (int i = 0; i < 16; i++) {
+            assertThat(sampler.shouldCapture(new ScenarioKey("ep" + i, "none", "200"))).isTrue();
+        }
+        assertThat(sampler.shouldCapture(new ScenarioKey("ep-extra", "none", "200"))).isFalse();
+        assertThat(sampler.uniqueKeys()).isEqualTo(16);
+    }
 }

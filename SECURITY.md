@@ -14,6 +14,7 @@ Do not attach real captured corpora that may contain credentials or PII.
 - `/health` and `/actuator/**` are excluded
 - `multipart/form-data` and `application/octet-stream` are omitted
 - Bodies are capped (`max-request-bytes` / `max-response-bytes`)
+- `/actuator/traffictape` reports counts and routes only; still treat it as internal and do not expose it publicly
 
 ## What not to do
 

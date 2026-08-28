@@ -118,6 +118,8 @@ public final class CloudWatchCaptureSink implements CaptureSink {
             body.put("observedRequests", snapshot.observedRequests());
             body.put("capturedEvents", snapshot.capturedEvents());
             body.put("droppedEvents", snapshot.droppedEvents());
+            body.put("lostEvents", snapshot.lostEvents());
+            body.put("writeErrors", snapshot.writeErrors());
             body.put("bytesCaptured", snapshot.bytesCaptured());
             body.put("captureReady", snapshot.captureReady());
             body.put("lastNewScenarioAt", snapshot.lastNewScenarioAt());

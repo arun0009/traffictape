@@ -15,7 +15,11 @@ public record BodyCapture(
     }
 
     public static BodyCapture omitted(long sizeBytes) {
-        return new BodyCapture(BodyEncoding.OMITTED, null, false, sizeBytes, 0);
+        return omitted(sizeBytes, false);
+    }
+
+    public static BodyCapture omitted(long sizeBytes, boolean truncated) {
+        return new BodyCapture(BodyEncoding.OMITTED, null, truncated, sizeBytes, 0);
     }
 
     public static BodyCapture json(Object body, boolean truncated, long sizeBytes, long capturedBytes) {

@@ -45,9 +45,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Wires core SPIs. To extend: expose a {@code @Bean} of {@link CaptureSink},
- * {@link Fingerprinter}, {@link Sampler}, {@link CaptureMetrics}, {@link Redactor},
- * or {@link PathNormalizer}.
+ * Wires capture. The SPIs most people replace are {@link CaptureSink} and {@link Redactor}.
+ * {@link Fingerprinter}, {@link Sampler}, {@link CaptureMetrics}, and {@link PathNormalizer}
+ * are also overridable {@code @Bean}s.
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "traffictape", name = "enabled", havingValue = "true")
@@ -66,6 +66,7 @@ public class TrafficTapeAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     CapturePolicy trafficTapeCapturePolicy(TrafficTapeProperties properties) {
+        properties.validate();
         TrafficTapeProperties.Capture capture = properties.getCapture();
         TrafficTapeProperties.Redaction redaction = properties.getRedaction();
         boolean redact = redaction.isEnabled();
@@ -122,7 +123,8 @@ public class TrafficTapeAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     Sampler trafficTapeSampler(TrafficTapeProperties properties) {
-        return new BoundedScenarioSampler(properties.getMaxExamplesPerScenario());
+        return new BoundedScenarioSampler(properties.getMaxExamplesPerScenario(),
+                properties.getMaxUniqueFingerprints());
     }
 
     @Bean
@@ -166,6 +168,7 @@ public class TrafficTapeAutoConfiguration {
                 .redactor(redactor)
                 .metrics(metrics)
                 .maxExamplesPerScenario(properties.getMaxExamplesPerScenario())
+                .maxUniqueFingerprints(properties.getMaxUniqueFingerprints())
                 .plateauAfter(properties.getPlateauAfter())
                 .build();
     }

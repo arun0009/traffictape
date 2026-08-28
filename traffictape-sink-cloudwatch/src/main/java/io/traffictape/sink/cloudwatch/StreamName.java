@@ -1,7 +1,6 @@
 package io.traffictape.sink.cloudwatch;
 
-import java.net.InetAddress;
-import java.util.UUID;
+import io.traffictape.InstanceIds;
 
 /**
  * One CloudWatch stream per JVM so four Fargate tasks do not interleave
@@ -21,22 +20,7 @@ final class StreamName {
     }
 
     static String instanceId() {
-        String host = firstNonBlank(
-                System.getenv("HOSTNAME"),
-                System.getenv("COMPUTERNAME"),
-                localHostName());
-        if (host == null || host.isBlank() || "localhost".equalsIgnoreCase(host)) {
-            return UUID.randomUUID().toString().substring(0, 8);
-        }
-        return host;
-    }
-
-    private static String localHostName() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (Exception e) {
-            return null;
-        }
+        return InstanceIds.current();
     }
 
     /**
@@ -51,17 +35,5 @@ final class StreamName {
             cleaned = cleaned.substring(0, 512);
         }
         return cleaned.isBlank() ? "task" : cleaned;
-    }
-
-    private static String firstNonBlank(String... values) {
-        if (values == null) {
-            return "";
-        }
-        for (String value : values) {
-            if (value != null && !value.isBlank()) {
-                return value;
-            }
-        }
-        return "";
     }
 }

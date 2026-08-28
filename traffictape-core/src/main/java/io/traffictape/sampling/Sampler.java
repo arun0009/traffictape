@@ -10,4 +10,8 @@ public interface Sampler {
     boolean shouldCapture(ScenarioKey key);
 
     void recordCaptured(ScenarioKey key);
+
+    /** Refund a slot reserved by {@link #shouldCapture} when the example is not stored. */
+    default void release(ScenarioKey key) {
+    }
 }

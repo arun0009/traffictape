@@ -68,7 +68,7 @@ class S3FlociIT {
                         "payments-api/task-a/statistics.json",
                         "payments-api/task-a/gaps.json",
                         "payments-api/task-a/fanout.json",
-                        "payments-api/task-a/FOR_CLAUDE.md",
+                        "payments-api/task-a/README.md",
                         "payments-api/task-a/events/events-000001.jsonl.gz");
 
         String metadata = getUtf8(s3, "payments-api/task-a/metadata.json");

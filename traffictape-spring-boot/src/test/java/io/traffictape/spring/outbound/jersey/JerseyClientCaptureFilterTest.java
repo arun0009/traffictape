@@ -2,6 +2,7 @@ package io.traffictape.spring.outbound.jersey;
 
 import io.traffictape.capture.CaptureEngine;
 import io.traffictape.capture.CaptureQueue;
+import io.traffictape.model.BodyEncoding;
 import io.traffictape.model.HttpTransaction;
 import io.traffictape.spring.TrafficTapeProperties;
 import jakarta.ws.rs.client.Client;
@@ -43,5 +44,31 @@ class JerseyClientCaptureFilterTest {
         assertThat(tx.response().status()).isEqualTo(201);
         assertThat(tx.request().body().body().toString()).contains("sku");
         assertThat(tx.response().body().body().toString()).contains("id");
+        assertThat(tx.request().body().truncated()).isFalse();
+    }
+
+    @Test
+    void marksRequestTruncatedWhenEntityExceedsCap() throws Exception {
+        CaptureQueue queue = new CaptureQueue(10);
+        CaptureEngine engine = CaptureEngine.createDefault(queue, 10);
+        TrafficTapeProperties properties = new TrafficTapeProperties();
+        properties.setMaxRequestBytes(8);
+        JerseyClientCaptureFilter filter = new JerseyClientCaptureFilter(engine, properties);
+
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+            server.start();
+            try (Client client = ClientBuilder.newClient().register(filter)) {
+                client.target(server.url("/ledger").uri())
+                        .request()
+                        .post(Entity.entity("{\"sku\":\"abcdefghij\"}", MediaType.APPLICATION_JSON_TYPE))
+                        .close();
+            }
+        }
+
+        HttpTransaction tx = queue.drain(1).get(0);
+        assertThat(tx.request().body().truncated()).isTrue();
+        assertThat(tx.request().body().encoding()).isEqualTo(BodyEncoding.OMITTED);
+        assertThat(tx.request().body().sizeBytes()).isGreaterThan(8);
     }
 }

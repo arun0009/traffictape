@@ -24,17 +24,17 @@ public class TrafficTapeProperties {
      */
     private boolean enabled = false;
     /** First-N bodies per scenario (not per route). Counts continue after this. */
-    private int maxExamplesPerScenario = 50;
+    private int maxExamplesPerScenario = 10;
     /** captureReady after no new unique scenario for this long. Default 6h. */
     private Duration plateauAfter = Duration.ofHours(6);
     /** Request body prefix kept per exchange. Larger bodies are captured truncated. */
-    private int maxRequestBytes = 1024 * 1024;
+    private int maxRequestBytes = 64 * 1024;
     /** Response body prefix kept per exchange. Larger bodies are captured truncated. */
-    private int maxResponseBytes = 1024 * 1024;
+    private int maxResponseBytes = 64 * 1024;
     /** Hand-off queue depth. When full, exchanges are dropped rather than blocking the request. */
-    private int queueSize = 100_000;
+    private int queueSize = 2_000;
     /** Cap on distinct route+scenario keys tracked, bounding memory on high-cardinality traffic. */
-    private int maxUniqueFingerprints = 50_000;
+    private int maxUniqueFingerprints = 10_000;
     /** How long shutdown waits for the writer to drain before giving up. */
     private Duration shutdownDrain = Duration.ofSeconds(5);
     private final Flush flush = new Flush();
@@ -137,6 +137,39 @@ public class TrafficTapeProperties {
             return null;
         }
         return destinations.getOrDefault(host, host);
+    }
+
+    public void validate() {
+        if (maxExamplesPerScenario < 0) {
+            throw new IllegalArgumentException("traffictape.max-examples-per-scenario must be >= 0");
+        }
+        if (maxRequestBytes <= 0 || maxResponseBytes <= 0) {
+            throw new IllegalArgumentException("traffictape.max-request-bytes and max-response-bytes must be > 0");
+        }
+        if (queueSize <= 0) {
+            throw new IllegalArgumentException("traffictape.queue-size must be > 0");
+        }
+        if (maxUniqueFingerprints <= 0) {
+            throw new IllegalArgumentException("traffictape.max-unique-fingerprints must be > 0");
+        }
+        if (plateauAfter == null || plateauAfter.isNegative()) {
+            throw new IllegalArgumentException("traffictape.plateau-after must be >= 0");
+        }
+        if (shutdownDrain == null || shutdownDrain.isNegative()) {
+            throw new IllegalArgumentException("traffictape.shutdown-drain must be >= 0");
+        }
+        if (flush.getInterval() == null || flush.getInterval().isNegative() || flush.getInterval().isZero()) {
+            throw new IllegalArgumentException("traffictape.flush.interval must be > 0");
+        }
+        if (flush.getMaxEvents() <= 0 || flush.getMaxBytes() <= 0) {
+            throw new IllegalArgumentException("traffictape.flush.max-events and max-bytes must be > 0");
+        }
+        if (output.getDirectory() == null || output.getDirectory().isBlank()) {
+            throw new IllegalArgumentException("traffictape.output.directory must not be blank");
+        }
+        if (output.getRotateAfterEvents() <= 0 || output.getRotateAfterBytes() <= 0) {
+            throw new IllegalArgumentException("traffictape.output.rotate-after-* must be > 0");
+        }
     }
 
     public static class Flush {

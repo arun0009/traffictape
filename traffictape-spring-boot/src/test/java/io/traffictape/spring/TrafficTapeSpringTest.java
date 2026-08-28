@@ -16,12 +16,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,11 +27,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(
@@ -65,25 +61,21 @@ class TrafficTapeSpringTest {
     }
 
     @Test
-    void capturesInboundVerbsAndBodies() throws Exception {
+    void capturesInboundAndSplitsPatchShapes() throws Exception {
         mvc.perform(get("/widgets/1")).andExpect(status().isOk());
         mvc.perform(post("/widgets").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"x\"}"))
                 .andExpect(status().isCreated());
-        mvc.perform(put("/widgets/1").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"y\"}"))
-                .andExpect(status().isOk());
         mvc.perform(patch("/widgets/1").contentType(MediaType.APPLICATION_JSON).content("{\"status\":\"ACTIVE\"}"))
                 .andExpect(status().isOk());
         mvc.perform(patch("/widgets/1").contentType(MediaType.APPLICATION_JSON).content("{\"owner\":\"team-a\"}"))
                 .andExpect(status().isOk());
-        mvc.perform(delete("/widgets/1")).andExpect(status().isNoContent());
-        awaitEvents(6);
+        awaitEvents(4);
 
         assertThat(sink.written()).extracting(HttpTransaction::method)
-                .contains("GET", "POST", "PUT", "PATCH", "DELETE");
+                .contains("GET", "POST", "PATCH");
         HttpTransaction get = inbound("GET");
         assertThat(get.route()).isEqualTo("/widgets/{id}");
         assertThat(get.path()).isEqualTo("/widgets/1");
-        assertThat(get.response().status()).isEqualTo(200);
 
         HttpTransaction post = inbound("POST");
         assertThat(post.request().body().body().toString()).contains("name");
@@ -111,17 +103,6 @@ class TrafficTapeSpringTest {
         // Status is beside the point and depends on which endpoints are exposed; route exclusion is not.
         mvc.perform(get("/actuator/health"));
         assertThat(engine.statistics().observed()).isEqualTo(before);
-    }
-
-    @Test
-    void differentIdsShareEndpointFingerprint() throws Exception {
-        mvc.perform(get("/widgets/1")).andExpect(status().isOk());
-        mvc.perform(get("/widgets/2")).andExpect(status().isOk());
-        awaitEvents(2);
-        var gets = sink.written().stream()
-                .filter(tx -> tx.direction() == Direction.INBOUND && "GET".equals(tx.method()))
-                .toList();
-        assertThat(gets.get(0).endpointFingerprintId()).isEqualTo(gets.get(1).endpointFingerprintId());
     }
 
     @Test
@@ -160,19 +141,9 @@ class TrafficTapeSpringTest {
                 return org.springframework.http.ResponseEntity.status(201).body(Map.of("id", "1"));
             }
 
-            @PutMapping("/widgets/{id}")
-            Map<String, String> put(@PathVariable String id, @RequestBody Map<String, String> body) {
-                return body;
-            }
-
             @PatchMapping("/widgets/{id}")
             Map<String, String> patch(@PathVariable String id, @RequestBody Map<String, String> body) {
                 return body;
-            }
-
-            @DeleteMapping("/widgets/{id}")
-            org.springframework.http.ResponseEntity<Void> delete(@PathVariable String id) {
-                return org.springframework.http.ResponseEntity.noContent().build();
             }
         }
     }

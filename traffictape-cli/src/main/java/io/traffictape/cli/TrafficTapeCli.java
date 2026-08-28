@@ -67,7 +67,7 @@ public final class TrafficTapeCli {
                   --corpus <path>   Recording directory, its events/ directory, or a single
                                     .jsonl/.jsonl.gz file (for example a CloudWatch dump).
                   --out <dir>       Output directory. Default: ./traffictape-out
-                  --format <f>      wiremock | mountebank | both. Default: both
+                  --format <f>      wiremock | mountebank | both. Default: wiremock
                   --base-port <n>   First port for Mountebank imposters. Default: 4545
                   --help            This message.
 
@@ -80,7 +80,7 @@ public final class TrafficTapeCli {
         static Options parse(String[] args) {
             Path corpus = null;
             Path out = Path.of("traffictape-out");
-            String format = "both";
+            String format = "wiremock";
             int basePort = 4545;
 
             for (int i = 1; i < args.length; i++) {

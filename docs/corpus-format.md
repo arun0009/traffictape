@@ -1,19 +1,16 @@
 # Corpus format
 
-Schema version: `1`
-
-The corpus is the public contract. Language adapters must produce the same JSON.
+Schema version: `1`. Machine-readable contract: [`schema/http-transaction-v1.json`](../schema/http-transaction-v1.json). CLI `generate` skips events whose `schemaVersion` is not `1`.
 
 ```text
 {output}/
-  FOR_CLAUDE.md
+  README.md
   metadata.json
   statistics.json
   gaps.json
   fanout.json
   events/
     events-000001.jsonl.gz
-    events-000002.jsonl.gz
 ```
 
 One JSON object per line. Gzip. Not one file per request.
@@ -32,6 +29,8 @@ One JSON object per line. Gzip. Not one file per request.
   "totalObservedRequests": 2841293,
   "totalCapturedEvents": 4821,
   "totalDroppedEvents": 0,
+  "totalLostEvents": 0,
+  "writeErrors": 0,
   "captureReady": false,
   "lastNewScenarioAt": "2026-08-26T21:40:00Z"
 }
@@ -46,7 +45,7 @@ Index of every observed endpoint and scenario, including those that stopped capt
 - `gaps[]` — ranked; `bodiesComplete` = `capturedExamples >= min(count, N)`
 - `fanout[]` — typical outbound hop sequences per inbound scenario
 
-`gaps.json` and `fanout.json` are the same arrays as standalone files. `FOR_CLAUDE.md` is the read-me. CloudWatch puts truncated `gaps`/`fanout` on each `STATISTICS` event.
+`gaps.json` and `fanout.json` are the same arrays as standalone files. `README.md` is the read-me. CloudWatch puts truncated `gaps`/`fanout` on each `STATISTICS` event.
 
 ## HTTP_TRANSACTION event
 
@@ -98,7 +97,7 @@ Outbound events set `direction: OUTBOUND`, `destination`, `correlation.parentExc
 | `EMPTY` | `null` |
 | `OMITTED` | `null` (binary / multipart / excluded content type) |
 
-Never raw binary in JSON. `truncated: true` when over `max-*-bytes`.
+Never raw binary in JSON. `truncated: true` when over `max-*-bytes`. Unparseable truncated JSON is omitted but still flagged `truncated: true`.
 
 ## Reconstructing a scenario for mocks
 

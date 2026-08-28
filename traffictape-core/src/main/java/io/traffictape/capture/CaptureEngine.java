@@ -63,6 +63,7 @@ public final class CaptureEngine {
         return new Builder();
     }
 
+    /** Test and benchmark helper. Production adapters use {@link #builder()}. */
     public static CaptureEngine createDefault(CaptureQueue queue, int maxExamplesPerScenario) {
         return builder().queue(queue).maxExamplesPerScenario(maxExamplesPerScenario).build();
     }
@@ -124,6 +125,7 @@ public final class CaptureEngine {
                 metrics.recordExampleCaptured();
                 metrics.recordBytes(bytes);
             } else {
+                sampler.release(key);
                 statistics.recordDropped();
                 metrics.recordDropped();
             }
@@ -192,9 +194,9 @@ public final class CaptureEngine {
         private Redactor redactor;
         private CaptureQueue queue;
         private CaptureMetrics metrics = CaptureMetrics.NOOP;
-        private int maxExamplesPerScenario = 50;
-        private int maxUniqueFingerprints = 50_000;
-        private int maxBodyBytes = 1024 * 1024;
+        private int maxExamplesPerScenario = 10;
+        private int maxUniqueFingerprints = 10_000;
+        private int maxBodyBytes = 64 * 1024;
         private Duration plateauAfter = StatisticsRegistry.DEFAULT_PLATEAU_AFTER;
 
         public Builder policy(CapturePolicy policy) {
@@ -257,12 +259,22 @@ public final class CaptureEngine {
             return this;
         }
 
+        public Builder maxUniqueFingerprints(int maxUniqueFingerprints) {
+            this.maxUniqueFingerprints = maxUniqueFingerprints;
+            return this;
+        }
+
+        public Builder maxBodyBytes(int maxBodyBytes) {
+            this.maxBodyBytes = maxBodyBytes;
+            return this;
+        }
+
         public CaptureEngine build() {
             if (queue == null) {
-                queue = new CaptureQueue(10_000);
+                queue = new CaptureQueue(2_000);
             }
             if (sampler == null) {
-                sampler = new BoundedScenarioSampler(maxExamplesPerScenario);
+                sampler = new BoundedScenarioSampler(maxExamplesPerScenario, maxUniqueFingerprints);
             }
             if (statistics == null) {
                 statistics = new StatisticsRegistry(maxUniqueFingerprints, maxExamplesPerScenario, plateauAfter);

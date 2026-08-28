@@ -258,6 +258,35 @@ class GenerateCommandTest {
         assertThat(output()).contains("No HTTP_TRANSACTION events found");
     }
 
+    @Test
+    void defaultFormatWritesWireMockAndJunitButNotMountebank() {
+        assertThat(generate()).isZero();
+        assertThat(out.resolve("wiremock").resolve("mappings")).isDirectory();
+        assertThat(out.resolve("junit").resolve("TrafficTapeReplayTest.java")).exists();
+        assertThat(out.resolve("mountebank")).doesNotExist();
+    }
+
+    @Test
+    void skipsUnsupportedSchemaVersions() throws Exception {
+        Files.writeString(corpus.resolve("events").resolve("events-000002.jsonl"), """
+                {"schemaVersion":"2","eventType":"HTTP_TRANSACTION","method":"GET","route":"/x","path":"/x"}
+                """);
+        assertThat(generate("--format", "wiremock")).isZero();
+        assertThat(output()).contains("unsupported schemaVersion");
+    }
+
+    @Test
+    void generatesFromPublishedExampleCorpus() {
+        Path example = Path.of("..", "examples", "corpus");
+        assertThat(example).isDirectory();
+        int status = TrafficTapeCli.run(
+                new String[]{"generate", "--corpus", example.toString(), "--out", out.toString()},
+                printStream, printStream);
+        assertThat(status).isZero();
+        assertThat(out.resolve("wiremock").resolve("mappings")).isDirectory();
+        assertThat(out.resolve("test-plan.json")).exists();
+    }
+
     private static String readAll(List<Path> files) throws Exception {
         StringBuilder all = new StringBuilder();
         for (Path file : files) {

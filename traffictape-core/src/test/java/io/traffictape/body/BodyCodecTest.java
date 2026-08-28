@@ -63,6 +63,7 @@ class BodyCodecTest {
         assertThat(capture.encoding()).isEqualTo(BodyEncoding.OMITTED);
         assertThat(capture.body()).isNull();
         assertThat(capture.sizeBytes()).isEqualTo(500);
+        assertThat(capture.truncated()).isTrue();
     }
 
     @Test

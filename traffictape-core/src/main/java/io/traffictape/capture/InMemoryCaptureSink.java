@@ -12,6 +12,8 @@ public final class InMemoryCaptureSink implements CaptureSink {
     private volatile boolean fail;
     private volatile RuntimeException failure = new RuntimeException("sink failed");
 
+    private volatile int remainingFailures;
+
     public void failWith(RuntimeException e) {
         this.failure = e;
         this.fail = true;
@@ -19,6 +21,11 @@ public final class InMemoryCaptureSink implements CaptureSink {
 
     public void fail() {
         this.fail = true;
+    }
+
+    public void failTimes(int n) {
+        this.remainingFailures = n;
+        this.fail = false;
     }
 
     public synchronized List<HttpTransaction> written() {
@@ -31,6 +38,10 @@ public final class InMemoryCaptureSink implements CaptureSink {
 
     @Override
     public synchronized void write(CaptureBatch batch) {
+        if (remainingFailures > 0 && batch != null && batch.size() > 0) {
+            remainingFailures--;
+            throw failure;
+        }
         if (fail) {
             throw failure;
         }

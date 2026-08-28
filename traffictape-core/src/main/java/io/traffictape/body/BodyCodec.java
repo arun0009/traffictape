@@ -53,7 +53,7 @@ public final class BodyCodec {
             } catch (Exception e) {
                 // Unparseable JSON (usually truncated) cannot be field-redacted, and invalid JSON
                 // is useless as a mock body. Omit rather than store it raw.
-                return BodyCapture.omitted(size);
+                return BodyCapture.omitted(size, over);
             }
         }
         if (isText(ct)) {
