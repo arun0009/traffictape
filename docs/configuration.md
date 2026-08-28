@@ -1,6 +1,6 @@
 # Configuration
 
-Requires Java 17+ and Spring Boot 3.x on Spring MVC. Prefix: `traffictape`. Disabled unless `enabled: true`.
+Requires Java 17+ and Spring Boot 3.x on Spring MVC or JAX-RS/Jersey (servlet). Prefix: `traffictape`. Disabled unless `enabled: true`.
 
 Every property ships configuration metadata, so IntelliJ IDEA and VS Code complete names, show
 descriptions and defaults, and suggest values for the list properties. The lists below **replace**

@@ -11,7 +11,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.util.UrlPathHelper;
 
 import java.io.IOException;
@@ -103,8 +102,7 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
             long startNanos) {
         String path = PATHS.getPathWithinApplication(original);
         String method = original.getMethod();
-        Object pattern = original.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
-        String route = pattern == null ? null : pattern.toString();
+        String route = routeTemplate(original);
         ObservedExchange.Builder observed = ObservedExchange.builder()
                 .direction(Direction.INBOUND)
                 .timestamp(Instant.now())
@@ -130,6 +128,19 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
                     .responseDeclaredSize(responseWrapper.declaredSize());
         }
         engine.record(observed.build());
+    }
+
+    /**
+     * Jersey sets {@link CaptureContexts#ROUTE_ATTRIBUTE} after matching. Spring MVC sets
+     * {@code HandlerMapping.bestMatchingPattern}. Neither is required to record.
+     */
+    private static String routeTemplate(HttpServletRequest request) {
+        Object jersey = request.getAttribute(CaptureContexts.ROUTE_ATTRIBUTE);
+        if (jersey != null) {
+            return jersey.toString();
+        }
+        Object mvc = request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingPattern");
+        return mvc == null ? null : mvc.toString();
     }
 
     private boolean isExcludedTraffic(HttpServletRequest request) {

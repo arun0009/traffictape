@@ -20,6 +20,7 @@ import io.traffictape.sampling.BoundedScenarioSampler;
 import io.traffictape.sampling.Sampler;
 import io.traffictape.sink.file.FileCaptureSink;
 import io.traffictape.spring.inbound.InboundTrafficTapeFilter;
+import io.traffictape.spring.inbound.jersey.JerseyCaptureConfiguration;
 import io.traffictape.spring.outbound.okhttp.OkHttpCaptureConfiguration;
 import io.traffictape.spring.outbound.restclient.RestClientCaptureConfiguration;
 import io.traffictape.spring.outbound.resttemplate.RestTemplateCaptureConfiguration;
@@ -55,7 +56,8 @@ import java.util.Map;
         RestClientCaptureConfiguration.class,
         RestTemplateCaptureConfiguration.class,
         WebClientCaptureConfiguration.class,
-        OkHttpCaptureConfiguration.class
+        OkHttpCaptureConfiguration.class,
+        JerseyCaptureConfiguration.class
 })
 public class TrafficTapeAutoConfiguration {
 

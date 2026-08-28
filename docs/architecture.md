@@ -29,7 +29,7 @@ TrafficTape records real HTTP behavior into a portable corpus. Spring Boot is an
 ## Capture path (Spring)
 
 ```text
-inbound Filter / RestClient, RestTemplate, WebClient, OkHttp interceptors
+inbound Filter / Jersey @Path, RestClient, RestTemplate, WebClient, OkHttp, JAX-RS Client
         │
         ▼
   CaptureEngine.record(ObservedExchange)

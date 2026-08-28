@@ -42,7 +42,7 @@ That is the whole loop. `out/wiremock/mappings` holds a stub per outbound call y
 
 ## What actually gets captured
 
-Inbound capture is a servlet filter, so it records anything that goes through the servlet container. Outbound capture is client interceptors, so it records calls made through an injected `RestClient.Builder` / `RestTemplateBuilder` / `WebClient.Builder` or an `OkHttpClient` bean.
+Inbound capture is a servlet filter, so it records Spring MVC and JAX-RS/Jersey on the same container. Outbound capture is client interceptors: injected `RestClient.Builder` / `RestTemplateBuilder` / `WebClient.Builder`, an `OkHttpClient` bean, or a JAX-RS `Client` bean.
 
 This means the test style matters more than the test count:
 

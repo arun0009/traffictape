@@ -9,6 +9,11 @@ public final class CaptureContexts {
 
     /** Servlet request attribute holding the inbound {@link ExchangeContext}. */
     public static final String REQUEST_ATTRIBUTE = "traffictape.exchangeContext";
+    /**
+     * Servlet request attribute holding a JAX-RS {@code @Path} template, set after Jersey
+     * matches the resource. The inbound filter prefers this over Spring MVC's pattern.
+     */
+    public static final String ROUTE_ATTRIBUTE = "traffictape.route";
     /** Reactor context key holding the inbound {@link ExchangeContext}. */
     public static final String REACTOR_KEY = "traffictape.exchangeContext";
     /** Reactor context key marking an exchange whose capture is suppressed. */

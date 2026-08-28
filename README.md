@@ -46,7 +46,7 @@ POST /orders
 
 ## Install
 
-Java 17+, Spring Boot 3.x, Spring MVC. Pin `${traffictape.version}` to the version on the Maven Central badge.
+Java 17+, Spring Boot 3.x. Inbound: Spring MVC **or** JAX-RS/Jersey on a servlet container. Same artifact.
 
 ```xml
 <dependency>
@@ -56,7 +56,7 @@ Java 17+, Spring Boot 3.x, Spring MVC. Pin `${traffictape.version}` to the versi
 </dependency>
 ```
 
-Outbound capture needs an injected `RestClient.Builder`, `RestTemplateBuilder`, `WebClient.Builder`, or an `OkHttpClient` Spring bean. `RestClient.create()` and a client you construct yourself are not recorded.
+Outbound capture needs an injected `RestClient.Builder`, `RestTemplateBuilder`, `WebClient.Builder`, an `OkHttpClient` Spring bean, or a JAX-RS `Client` Spring bean. `RestClient.create()`, `ClientBuilder.newClient()`, and a client you construct yourself are not recorded.
 
 Add **one** of these. A sink includes the starter; do not add both.
 
@@ -102,9 +102,9 @@ Need a different store, redaction rule, or URL id shape? Expose a `@Bean` of `Ca
 
 ## Limits
 
-- Inbound: Spring MVC only (no WebFlux).
+- Inbound: Spring MVC, or JAX-RS/Jersey as a servlet. Not WebFlux.
 - Async servlet (`DeferredResult`, `Callable`) does not link outbound calls to the parent request.
-- WebClient request bodies are not captured (responses are).
+- WebClient request bodies are not captured (responses are). JAX-RS client request entities are captured only when they are already a `String` or `byte[]`.
 - Plain text is not field-redacted. Broken JSON is dropped, not stored raw.
 - The CLI writes stub files and a test plan. It does not generate Karate or JUnit.
 
