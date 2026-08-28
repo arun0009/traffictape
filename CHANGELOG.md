@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.1 — 2026-08-28
 
 - WebClient and JAX-RS client request bodies are teed as they are written (JSON POJOs included). SSE responses stay metadata-only.
 
