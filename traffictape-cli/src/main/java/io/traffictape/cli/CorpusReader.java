@@ -21,8 +21,7 @@ import java.util.zip.GZIPInputStream;
 
 /**
  * Reads events from the sink layout ({@code <dir>/events/*.jsonl[.gz]}), a directory of event
- * files, or a single file — including an {@code aws logs filter-log-events} dump, where
- * non-transaction lines such as {@code STATISTICS} are skipped.
+ * files, or a single file. Non-transaction lines such as {@code STATISTICS} are skipped.
  */
 final class CorpusReader {
 
@@ -53,7 +52,7 @@ final class CorpusReader {
                         continue;
                     }
                     try {
-                        // Check the discriminator first so a STATISTICS line in a CloudWatch dump
+                        // Check the discriminator first so a STATISTICS line in a jsonl dump
                         // counts as skipped rather than as a parse failure.
                         JsonNode node = mapper.readTree(trimmed);
                         JsonNode eventType = node.get("eventType");

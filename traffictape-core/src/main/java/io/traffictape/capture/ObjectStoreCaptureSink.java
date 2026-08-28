@@ -15,7 +15,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Same file layout as the file sink, via {@link ObjectPutter}. Put failures throw; the worker catches them.
+ * Same corpus tree as the file sink, via {@link ObjectPutter}. Use this from a {@code @Bean CaptureSink}
+ * when you already have object storage; creating the bucket is infra, not this library.
+ * Put failures throw; the worker catches them.
  */
 public final class ObjectStoreCaptureSink implements CaptureSink {
 

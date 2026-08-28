@@ -13,13 +13,11 @@ TrafficTape records HTTP from a running Spring Boot app. A CLI turns that record
 
 Published:
 
-- `traffictape-core` — transaction model, fingerprinting, sampling, redaction, `CaptureSink`, gzip JSONL file writer
+- `traffictape-core` — transaction model, fingerprinting, sampling, redaction, `CaptureSink`, gzip JSONL file writer, JSON-line logger
 - `traffictape-spring-boot` — Spring MVC and JAX-RS/Jersey inbound; RestClient / RestTemplate / WebClient / OkHttp / JAX-RS `Client` outbound
-- `traffictape-sink-s3` — S3 writer (one prefix per task)
-- `traffictape-sink-cloudwatch` — CloudWatch Logs (batched `PutLogEvents` + `STATISTICS`)
 - `traffictape-cli` — offline `generate`
 
-S3 and CloudWatch jars include the Spring starter so a QA service adds one dependency. A non-Spring adapter implements `CaptureSink` against `traffictape-core` only.
+A non-Spring adapter implements `CaptureSink` against `traffictape-core` only. Shipping the tape (volume, log driver, object storage you already created) is infra, not a module here.
 
 Not published, under `tests/`:
 
@@ -39,9 +37,7 @@ CaptureSink mySink() {
 
 Same pattern for `Redactor` and `PathNormalizer`. `Fingerprinter`, `Sampler`, and `CaptureMetrics` are also replaceable; most users never do. Do not add framework types to `traffictape-core`.
 
-Do not add more sinks to this repository. Unknown output is a `@Bean CaptureSink`. Unknown HTTP clients call `CaptureEngine.record`.
-
-S3 and CloudWatch sinks have Floci Testcontainers ITs (`*FlociIT`). They skip if Docker is not running.
+Do not add more sinks to this repository. Unknown output is a `@Bean CaptureSink`. Unknown HTTP clients call `CaptureEngine.record`. Creating buckets, log groups, or IAM is CDK / Terraform, not this library.
 
 See [docs/architecture.md](docs/architecture.md).
 

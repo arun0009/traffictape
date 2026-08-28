@@ -45,7 +45,7 @@ Index of every observed endpoint and scenario, including those that stopped capt
 - `gaps[]` — ranked; `bodiesComplete` = `capturedExamples >= min(count, N)`
 - `fanout[]` — typical outbound hop sequences per inbound scenario
 
-`gaps.json` and `fanout.json` are the same arrays as standalone files. `README.md` is the read-me. CloudWatch puts truncated `gaps`/`fanout` on each `STATISTICS` event.
+`gaps.json` and `fanout.json` are the same arrays as standalone files. `README.md` is the read-me.
 
 ## HTTP_TRANSACTION event
 
@@ -101,4 +101,4 @@ Never raw binary in JSON. `truncated: true` when over `max-*-bytes`. Unparseable
 
 ## Reconstructing a scenario for mocks
 
-Prefer `fanout.json` (or `fanout` on `STATISTICS`). From events: group outbound by `parentExchangeId`, sort by `sequence`.
+Prefer `fanout.json`. From events: group outbound by `parentExchangeId`, sort by `sequence`.

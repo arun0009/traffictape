@@ -16,7 +16,7 @@
 
 Add this in **test scope**, run the suite you already have, generate WireMock stubs. No QA environment required.
 
-It is not a logger and it does not stay in production.
+It is not a logger and it does not stay in production. It does not create buckets, log groups, or IAM — that is CDK / your platform.
 
 ```xml
 <dependency>
@@ -67,14 +67,6 @@ Java 17+, Spring Boot 3.x. Inbound: Spring MVC **or** JAX-RS/Jersey on a servlet
 
 Outbound capture needs an injected `RestClient.Builder`, `RestTemplateBuilder`, `WebClient.Builder`, an `OkHttpClient` Spring bean, or a JAX-RS `Client` Spring bean. `RestClient.create()`, `ClientBuilder.newClient()`, and a client you construct yourself are not recorded.
 
-Add **one** of these. A sink includes the starter; do not add both.
-
-| Where the tape goes | Artifact |
-|---|---|
-| Local disk | `traffictape-spring-boot` |
-| S3 | `traffictape-sink-s3` |
-| CloudWatch Logs | `traffictape-sink-cloudwatch` |
-
 ```yaml
 traffictape:
   enabled: false
@@ -82,11 +74,11 @@ traffictape:
     directory: /tmp/traffic-tape
 ```
 
+The tape is files under `output.directory`. Copy that directory off the box when you are done. To ship JSON lines through the app's log driver instead, set `output.console: true` (logger `traffictape.corpus`). A custom store is a `@Bean CaptureSink` — `ObjectStoreCaptureSink` writes the same tree through a put callback if you already have a bucket.
+
 Restart after changing `enabled`. [Configuration](docs/configuration.md). Test-scope loop: [Capture from tests](docs/capture-from-tests.md).
 
 In QA, leave it on until `/actuator/traffictape` reports `ready: true`, then copy the corpus and remove the dependency. Expose the endpoint with `management.endpoints.web.exposure.include: [health, traffictape]`.
-
-Fargate: [CloudWatch](docs/configuration.md#fargate--cloudwatch) or [S3](docs/configuration.md#fargate--s3). CloudWatch is a JSON-line transport; file and S3 are the canonical corpus tree.
 
 ## Generate stubs
 
@@ -99,7 +91,7 @@ java -jar traffictape-cli-${traffictape.version}-all.jar generate \
 
 Writes WireMock mappings (default), `test-plan.json`, and a JUnit 5 replay skeleton. Mountebank: `--format mountebank`. [Generate](docs/generate.md).
 
-Need a different store or redaction rule? Expose a `@Bean` of `CaptureSink` or `Redactor`.
+Need a different store or redaction rule? Expose a `@Bean` of `CaptureSink` or `Redactor`. This library will not create AWS resources for you.
 
 ## Limits
 

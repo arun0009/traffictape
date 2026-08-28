@@ -19,6 +19,7 @@ import io.traffictape.redaction.Redactor;
 import io.traffictape.sampling.BoundedScenarioSampler;
 import io.traffictape.sampling.Sampler;
 import io.traffictape.sink.file.FileCaptureSink;
+import io.traffictape.sink.logging.LoggingCaptureSink;
 import io.traffictape.spring.inbound.InboundTrafficTapeFilter;
 import io.traffictape.spring.inbound.jersey.JerseyCaptureConfiguration;
 import io.traffictape.spring.outbound.okhttp.OkHttpCaptureConfiguration;
@@ -176,6 +177,10 @@ public class TrafficTapeAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(CaptureSink.class)
     CaptureSink trafficTapeCaptureSink(TrafficTapeProperties properties, Environment environment) {
+        if (properties.getOutput().isConsole()) {
+            log.info("TrafficTape writing JSON lines to logger {}", LoggingCaptureSink.LOGGER_NAME);
+            return new LoggingCaptureSink();
+        }
         Map<String, Object> meta = new LinkedHashMap<>();
         meta.put("recorderVersion", TrafficTapeVersion.get());
         meta.put("serviceName", environment.getProperty("spring.application.name", "application"));

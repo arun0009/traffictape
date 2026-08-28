@@ -12,13 +12,13 @@ TrafficTape records HTTP into a portable corpus. Spring Boot is the shipping ada
                                     │
                           AsyncCaptureWorker
                                     │
-                    File (canonical) / S3 / CloudWatch
+                    File (canonical) / logger traffictape.corpus
                                     │
                                     ▼
                     CLI → WireMock + test-plan.json + JUnit skeleton
 ```
 
-The worker batches: **1000 events**, **50 MB**, or **30s** (`traffictape.flush`). A sink never sees one event on the request thread. File is the reference corpus. S3 is the same tree in a bucket. CloudWatch is a JSON-line transport when a bucket is blocked; the CLI can still read a dump.
+The worker batches: **1000 events**, **50 MB**, or **30s** (`traffictape.flush`). A sink never sees one event on the request thread. File is the reference corpus. `output.console=true` writes the same JSON as one log line per event; shipping those lines is infra. The CLI can read a directory or a `.jsonl` dump.
 
 ## Capture path
 
@@ -39,7 +39,7 @@ adapter → ObservedExchange → CaptureEngine.record()  (never throws)
 
 The SPIs most people replace are **`CaptureSink`** and **`Redactor`**. Also overridable: `Fingerprinter`, `Sampler`, `PathNormalizer`, `CaptureMetrics`.
 
-Wire any of them as a `@Bean`. `@ConditionalOnMissingBean` skips the default.
+Wire any of them as a `@Bean`. `@ConditionalOnMissingBean` skips the default. `ObjectStoreCaptureSink` is a helper if you want the same file tree through a put callback; it does not talk to AWS.
 
 A new runtime adapter builds `ObservedExchange` and calls `record`. Do not add framework types to `traffictape-core`.
 

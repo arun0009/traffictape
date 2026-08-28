@@ -16,8 +16,6 @@ public final class CorpusReadme {
             - `events/*.jsonl.gz` — sampled request/response bodies.
 
             One regression test per **scenario**, not per endpoint. Mocks = `fanout.json` or `parentExchangeId` + `sequence`. Parameterize ids, timestamps, tokens; do not snapshot secrets.
-
-            CloudWatch: `filter eventType = "STATISTICS"` (latest) and `filter eventType = "HTTP_TRANSACTION"`.
             """;
 
     private CorpusReadme() {

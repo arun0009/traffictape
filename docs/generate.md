@@ -12,7 +12,7 @@ java -jar traffictape-cli-${traffictape.version}-all.jar generate \
 
 ```text
 --corpus <path>   Corpus directory, its events/ directory, or a single
-                  .jsonl/.jsonl.gz file (for example a CloudWatch dump).
+                  .jsonl/.jsonl.gz file.
 --out <dir>       Output directory. Default: ./traffictape-out
 --format <f>      wiremock | mountebank | both. Default: wiremock
 --base-port <n>   First port for Mountebank imposters. Default: 4545

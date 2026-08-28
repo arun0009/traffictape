@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Breaking
+
+- `traffictape-sink-s3` and `traffictape-sink-cloudwatch` are removed. This library does not create buckets, log groups, or IAM. Default output is gzip JSONL files. Optional `traffictape.output.console=true` writes JSON lines to logger `traffictape.corpus` (your log driver ships them). A custom store is a `@Bean CaptureSink`; `ObjectStoreCaptureSink` writes the same tree through a put callback.
+
 ## 0.5.1 — 2026-08-28
 
 - WebClient and JAX-RS client request bodies are teed as they are written (JSON POJOs included). SSE responses stay metadata-only.

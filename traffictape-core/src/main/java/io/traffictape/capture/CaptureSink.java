@@ -4,7 +4,7 @@ import java.io.Closeable;
 
 /**
  * Where events go. The worker calls {@link #write(CaptureBatch)} with a batch, never one event.
- * File, S3, and CloudWatch ship in this repo; anything else is a {@code @Bean} of this type.
+ * This repo ships a file sink and a JSON-line logger; anything else is a {@code @Bean} of this type.
  */
 public interface CaptureSink extends Closeable {
 

@@ -27,6 +27,14 @@ class TrafficTapePropertiesValidationTest {
     }
 
     @Test
+    void consoleOutputDoesNotRequireADirectory() {
+        TrafficTapeProperties properties = new TrafficTapeProperties();
+        properties.getOutput().setConsole(true);
+        properties.getOutput().setDirectory("  ");
+        properties.validate();
+    }
+
+    @Test
     void rejectsZeroFlushInterval() {
         TrafficTapeProperties properties = new TrafficTapeProperties();
         properties.getFlush().setInterval(Duration.ZERO);

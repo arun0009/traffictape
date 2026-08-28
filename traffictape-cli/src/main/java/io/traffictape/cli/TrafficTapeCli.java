@@ -65,7 +65,7 @@ public final class TrafficTapeCli {
                   recorded application made, plus a test plan for the inbound requests it served.
 
                   --corpus <path>   Recording directory, its events/ directory, or a single
-                                    .jsonl/.jsonl.gz file (for example a CloudWatch dump).
+                                    .jsonl/.jsonl.gz file.
                   --out <dir>       Output directory. Default: ./traffictape-out
                   --format <f>      wiremock | mountebank | both. Default: wiremock
                   --base-port <n>   First port for Mountebank imposters. Default: 4545

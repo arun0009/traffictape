@@ -164,6 +164,9 @@ public class TrafficTapeProperties {
         if (flush.getMaxEvents() <= 0 || flush.getMaxBytes() <= 0) {
             throw new IllegalArgumentException("traffictape.flush.max-events and max-bytes must be > 0");
         }
+        if (output.isConsole()) {
+            return;
+        }
         if (output.getDirectory() == null || output.getDirectory().isBlank()) {
             throw new IllegalArgumentException("traffictape.output.directory must not be blank");
         }
@@ -206,8 +209,14 @@ public class TrafficTapeProperties {
     }
 
     public static class Output {
-        /** Output directory. Use a disposable path; this is not meant to persist. */
+        /** Output directory. Use a disposable path; this is not meant to persist. Ignored when {@code console} is true. */
         private String directory = "/tmp/traffic-tape";
+
+        /**
+         * Write JSON lines to logger {@code traffictape.corpus} instead of files. Shipping those
+         * lines (log driver, volume, object storage) is infra, not this library.
+         */
+        private boolean console = false;
 
         /**
          * When to start a new events file. Independent of {@code flush.*}, which only controls how
@@ -223,6 +232,14 @@ public class TrafficTapeProperties {
 
         public void setDirectory(String directory) {
             this.directory = directory;
+        }
+
+        public boolean isConsole() {
+            return console;
+        }
+
+        public void setConsole(boolean console) {
+            this.console = console;
         }
 
         public int getRotateAfterEvents() {
