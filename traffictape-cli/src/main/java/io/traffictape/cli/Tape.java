@@ -20,7 +20,7 @@ import java.util.Set;
  * <p>The sampler budget is per JVM, so four tasks can record the same scenario four times;
  * generate keeps one.
  */
-final class Corpus {
+final class Tape {
 
     private final Map<String, HttpTransaction> inboundScenarios;
     private final Map<String, HttpTransaction> outboundScenarios;
@@ -28,7 +28,7 @@ final class Corpus {
     private final Map<String, Integer> scenariosPerEndpoint;
     private final int totalEvents;
 
-    private Corpus(Map<String, HttpTransaction> inboundScenarios,
+    private Tape(Map<String, HttpTransaction> inboundScenarios,
                    Map<String, HttpTransaction> outboundScenarios,
                    Map<String, Set<String>> inboundDependencies,
                    Map<String, Integer> scenariosPerEndpoint,
@@ -40,7 +40,7 @@ final class Corpus {
         this.totalEvents = totalEvents;
     }
 
-    static Corpus index(List<HttpTransaction> events) {
+    static Tape index(List<HttpTransaction> events) {
         Map<String, HttpTransaction> inbound = new LinkedHashMap<>();
         Map<String, HttpTransaction> outbound = new LinkedHashMap<>();
         Map<String, String> exchangeToInboundScenario = new HashMap<>();
@@ -84,7 +84,7 @@ final class Corpus {
         Map<String, Integer> counts = new HashMap<>();
         byEndpoint.forEach((endpoint, scenarios) -> counts.put(endpoint, scenarios.size()));
 
-        return new Corpus(inbound, outbound, dependencies, counts, events.size());
+        return new Tape(inbound, outbound, dependencies, counts, events.size());
     }
 
     private static int sequenceOf(HttpTransaction tx) {

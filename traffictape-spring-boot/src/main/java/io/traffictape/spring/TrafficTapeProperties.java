@@ -13,7 +13,7 @@ import java.util.Map;
  * {@code traffictape.enabled=true}; nothing is installed until then.
  *
  * <p>Nested groups: {@link Flush} (when the writer flushes), {@link Output} (where the
- * corpus is written and when files rotate), {@link Capture} (which traffic is eligible),
+ * tape is written and when files rotate), {@link Capture} (which traffic is eligible),
  * and {@link Redaction} (what is scrubbed before anything is written).
  */
 @ConfigurationProperties(prefix = "traffictape")
@@ -213,7 +213,7 @@ public class TrafficTapeProperties {
         private String directory = "/tmp/traffic-tape";
 
         /**
-         * Write JSON lines to logger {@code traffictape.corpus} instead of files. Shipping those
+         * Write JSON lines to logger {@code traffictape.tape} instead of files. Shipping those
          * lines (log driver, volume, object storage) is infra, not this library.
          */
         private boolean console = false;

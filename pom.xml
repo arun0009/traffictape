@@ -8,7 +8,7 @@
     <version>0.5.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>TrafficTape</name>
-    <description>Privacy-aware HTTP traffic corpus and flight recorder. Spring Boot is the first capture adapter.</description>
+    <description>Privacy-aware HTTP traffic recorder. Spring Boot is the first capture adapter.</description>
     <url>https://github.com/arun0009/traffictape</url>
 
     <licenses>
@@ -155,7 +155,7 @@
                             <jreleaser>
                                 <project>
                                     <name>traffictape</name>
-                                    <description>Privacy-aware HTTP traffic corpus and flight recorder</description>
+                                    <description>Privacy-aware HTTP traffic recorder</description>
                                     <links>
                                         <homepage>https://github.com/arun0009/traffictape</homepage>
                                     </links>

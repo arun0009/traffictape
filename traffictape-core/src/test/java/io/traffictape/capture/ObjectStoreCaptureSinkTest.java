@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ObjectStoreCaptureSinkTest {
 
     @Test
-    void writesSameCorpusLayoutAsFiles() throws Exception {
+    void writesSameTapeLayoutAsFiles() throws Exception {
         Map<String, byte[]> store = new LinkedHashMap<>();
         ObjectStoreCaptureSink sink = new ObjectStoreCaptureSink(
                 (path, content, type) -> store.put(path, content),

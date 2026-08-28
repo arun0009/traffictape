@@ -1,6 +1,6 @@
 # Architecture
 
-TrafficTape records HTTP into a portable corpus. Spring Boot is the shipping adapter.
+TrafficTape records HTTP into files you can copy around (the tape). Spring Boot is the shipping adapter.
 
 ```text
   Spring MVC / Jersey / RestClient / RestTemplate / WebClient / OkHttp / JAX-RS Client
@@ -12,13 +12,13 @@ TrafficTape records HTTP into a portable corpus. Spring Boot is the shipping ada
                                     │
                           AsyncCaptureWorker
                                     │
-                    File (canonical) / logger traffictape.corpus
+                    File (canonical) / logger traffictape.tape
                                     │
                                     ▼
                     CLI → WireMock + test-plan.json + JUnit skeleton
 ```
 
-The worker batches: **1000 events**, **50 MB**, or **30s** (`traffictape.flush`). A sink never sees one event on the request thread. File is the reference corpus. `output.console=true` writes the same JSON as one log line per event; shipping those lines is infra. The CLI can read a directory or a `.jsonl` dump.
+The worker batches: **1000 events**, **50 MB**, or **30s** (`traffictape.flush`). A sink never sees one event on the request thread. File is the real tape. `output.console=true` writes the same JSON as one log line per event; shipping those lines is infra. The CLI can read a directory or a `.jsonl` dump.
 
 ## Capture path
 

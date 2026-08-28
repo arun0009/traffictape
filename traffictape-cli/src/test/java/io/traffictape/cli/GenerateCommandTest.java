@@ -24,7 +24,7 @@ class GenerateCommandTest {
      * two ledger scenarios that differ only by request shape, an inventory 404 that differs from
      * the 200 only by response, and a STATISTICS line that is not a transaction.
      */
-    private static final String CORPUS = """
+    private static final String EVENTS = """
             {"schemaVersion":"1","eventType":"HTTP_TRANSACTION","direction":"INBOUND","timestamp":"2026-08-26T22:00:00Z","correlation":{"exchangeId":"ex-1","outboundCount":2},"method":"POST","route":"/orders","path":"/orders","query":{},"fingerprints":{"endpoint":{"id":"e-orders","label":"INBOUND POST /orders"},"scenario":{"id":"s-orders","label":"INBOUND POST /orders shape={sku:string} resp=201"}},"requestShape":"{sku:string}","responseCharacteristic":"201","latencyMs":42,"request":{"headers":{"Content-Type":["application/json"]},"contentType":"application/json","body":{"encoding":"JSON","body":{"sku":"abc"},"truncated":false,"sizeBytes":14,"capturedBytes":14}},"response":{"status":201,"headers":{"Content-Type":["application/json"],"Transfer-Encoding":["chunked"]},"contentType":"application/json","body":{"encoding":"JSON","body":{"id":"9"},"truncated":false,"sizeBytes":10,"capturedBytes":10}}}
             {"schemaVersion":"1","eventType":"HTTP_TRANSACTION","direction":"OUTBOUND","timestamp":"2026-08-26T22:00:00.010Z","correlation":{"parentExchangeId":"ex-1","sequence":1},"destination":"inventory.internal:8080","method":"GET","route":"/inventory/{sku}","path":"/inventory/abc","query":{"detail":["full"]},"fingerprints":{"endpoint":{"id":"e-inv","label":"OUTBOUND GET /inventory/{sku}"},"scenario":{"id":"s-inv-200","label":"OUTBOUND GET /inventory/{sku} resp=200"}},"requestShape":"none","responseCharacteristic":"200","latencyMs":5,"request":{"headers":{"Authorization":["[REDACTED]"]},"contentType":null,"body":{"encoding":"EMPTY","body":null,"truncated":false,"sizeBytes":0,"capturedBytes":0}},"response":{"status":200,"headers":{"Content-Type":["application/json"]},"contentType":"application/json","body":{"encoding":"JSON","body":{"sku":"abc","onHand":4},"truncated":false,"sizeBytes":24,"capturedBytes":24}}}
             {"schemaVersion":"1","eventType":"HTTP_TRANSACTION","direction":"OUTBOUND","timestamp":"2026-08-26T22:00:00.020Z","correlation":{"parentExchangeId":"ex-1","sequence":2},"destination":"ledger.internal:9090","method":"POST","route":"/ledger","path":"/ledger","query":{},"fingerprints":{"endpoint":{"id":"e-ledger","label":"OUTBOUND POST /ledger"},"scenario":{"id":"s-ledger-charge","label":"OUTBOUND POST /ledger shape={amount:number} resp=200"}},"requestShape":"{amount:number}","responseCharacteristic":"200","latencyMs":7,"request":{"headers":{},"contentType":"application/json","body":{"encoding":"JSON","body":{"amount":10},"truncated":false,"sizeBytes":13,"capturedBytes":13}},"response":{"status":200,"headers":{"Content-Type":["application/json"]},"contentType":"application/json","body":{"encoding":"JSON","body":{"posted":true},"truncated":false,"sizeBytes":15,"capturedBytes":15}}}
@@ -40,23 +40,23 @@ class GenerateCommandTest {
     @TempDir
     Path temp;
 
-    private Path corpus;
+    private Path tapeDir;
     private Path out;
     private ByteArrayOutputStream stdout;
     private PrintStream printStream;
 
     @BeforeEach
     void setUp() throws Exception {
-        corpus = temp.resolve("corpus");
-        Files.createDirectories(corpus.resolve("events"));
-        Files.writeString(corpus.resolve("events").resolve("events-000001.jsonl"), CORPUS);
+        tapeDir = temp.resolve("tape");
+        Files.createDirectories(tapeDir.resolve("events"));
+        Files.writeString(tapeDir.resolve("events").resolve("events-000001.jsonl"), EVENTS);
         out = temp.resolve("out");
         stdout = new ByteArrayOutputStream();
         printStream = new PrintStream(stdout, true, StandardCharsets.UTF_8);
     }
 
     private int generate(String... extra) {
-        String[] base = {"generate", "--corpus", corpus.toString(), "--out", out.toString()};
+        String[] base = {"generate", "--tape", tapeDir.toString(), "--out", out.toString()};
         String[] args = Stream.concat(Stream.of(base), Stream.of(extra)).toArray(String[]::new);
         return TrafficTapeCli.run(args, printStream, printStream);
     }
@@ -199,7 +199,7 @@ class GenerateCommandTest {
     void linksInboundCasesToTheOutboundStubsTheyNeed() throws Exception {
         assertThat(generate()).isZero();
         JsonNode plan = mapper.readTree(Files.readString(out.resolve("test-plan.json")));
-        assertThat(plan.get("corpus").get("inboundScenarios").asInt()).isEqualTo(1);
+        assertThat(plan.get("tape").get("inboundScenarios").asInt()).isEqualTo(1);
         JsonNode only = plan.get("cases").get(0);
         assertThat(only.get("scenario").asText()).isEqualTo("s-orders");
         assertThat(only.get("expect").get("status").asInt()).isEqualTo(201);
@@ -214,24 +214,24 @@ class GenerateCommandTest {
     @Test
     void readsSingleFileDumps() throws Exception {
         Path dump = temp.resolve("dump.jsonl");
-        Files.writeString(dump, CORPUS);
+        Files.writeString(dump, EVENTS);
         int status = TrafficTapeCli.run(
-                new String[]{"generate", "--corpus", dump.toString(), "--out", out.toString()},
+                new String[]{"generate", "--tape", dump.toString(), "--out", out.toString()},
                 printStream, printStream);
         assertThat(status).isZero();
         assertThat(output()).contains("Read 7 events from 1 file(s)");
     }
 
     @Test
-    void readsGzippedCorpus() throws Exception {
+    void readsGzippedTape() throws Exception {
         Path events = temp.resolve("gz").resolve("events");
         Files.createDirectories(events);
         try (java.util.zip.GZIPOutputStream gz = new java.util.zip.GZIPOutputStream(
                 Files.newOutputStream(events.resolve("events-000001.jsonl.gz")))) {
-            gz.write(CORPUS.getBytes(StandardCharsets.UTF_8));
+            gz.write(EVENTS.getBytes(StandardCharsets.UTF_8));
         }
         int status = TrafficTapeCli.run(
-                new String[]{"generate", "--corpus", temp.resolve("gz").toString(),
+                new String[]{"generate", "--tape", temp.resolve("gz").toString(),
                         "--out", out.toString()},
                 printStream, printStream);
         assertThat(status).isZero();
@@ -239,20 +239,29 @@ class GenerateCommandTest {
     }
 
     @Test
-    void rejectsUnknownFormatAndMissingCorpus() {
+    void rejectsUnknownFormatAndMissingTape() {
         assertThat(TrafficTapeCli.run(new String[]{"generate"}, printStream, printStream)).isEqualTo(2);
-        assertThat(output()).contains("--corpus is required");
+        assertThat(output()).contains("--tape is required");
         assertThat(generate("--format", "hoverfly")).isEqualTo(2);
         assertThat(output()).contains("--format must be one of");
     }
 
     @Test
-    void failsWhenCorpusHasNoTransactions() throws Exception {
+    void stillAcceptsTheOldCorpusFlag() {
+        int status = TrafficTapeCli.run(
+                new String[]{"generate", "--corpus", tapeDir.toString(), "--out", out.toString()},
+                printStream, printStream);
+        assertThat(status).isZero();
+        assertThat(output()).contains("Read 7 events");
+    }
+
+    @Test
+    void failsWhenTapeHasNoTransactions() throws Exception {
         Path empty = temp.resolve("empty");
         Files.createDirectories(empty);
         Files.writeString(empty.resolve("only-stats.jsonl"), "{\"eventType\":\"STATISTICS\"}\n");
         int status = TrafficTapeCli.run(
-                new String[]{"generate", "--corpus", empty.toString(), "--out", out.toString()},
+                new String[]{"generate", "--tape", empty.toString(), "--out", out.toString()},
                 printStream, printStream);
         assertThat(status).isEqualTo(1);
         assertThat(output()).contains("No HTTP_TRANSACTION events found");
@@ -268,7 +277,7 @@ class GenerateCommandTest {
 
     @Test
     void skipsUnsupportedSchemaVersions() throws Exception {
-        Files.writeString(corpus.resolve("events").resolve("events-000002.jsonl"), """
+        Files.writeString(tapeDir.resolve("events").resolve("events-000002.jsonl"), """
                 {"schemaVersion":"2","eventType":"HTTP_TRANSACTION","method":"GET","route":"/x","path":"/x"}
                 """);
         assertThat(generate("--format", "wiremock")).isZero();
@@ -276,11 +285,11 @@ class GenerateCommandTest {
     }
 
     @Test
-    void generatesFromPublishedExampleCorpus() {
-        Path example = Path.of("..", "examples", "corpus");
+    void generatesFromPublishedExampleTape() {
+        Path example = Path.of("..", "examples", "tape");
         assertThat(example).isDirectory();
         int status = TrafficTapeCli.run(
-                new String[]{"generate", "--corpus", example.toString(), "--out", out.toString()},
+                new String[]{"generate", "--tape", example.toString(), "--out", out.toString()},
                 printStream, printStream);
         assertThat(status).isZero();
         assertThat(out.resolve("wiremock").resolve("mappings")).isDirectory();

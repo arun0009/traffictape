@@ -6,7 +6,7 @@ import io.traffictape.statistics.StatisticsRegistry;
 import java.util.List;
 
 /**
- * A flushable group of corpus events. Sinks must not assume they hold the full capture.
+ * A flushable group of tape events. Sinks must not assume they hold the full capture.
  */
 public record CaptureBatch(
         List<HttpTransaction> transactions,

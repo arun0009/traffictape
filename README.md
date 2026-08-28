@@ -38,7 +38,7 @@ traffictape:
 ```bash
 mvn test
 java -jar traffictape-cli-${traffictape.version}-all.jar generate \
-  --corpus target/traffic-tape --out ./out
+  --tape target/traffic-tape --out ./out
 ```
 
 Off by default in a real app. If capture breaks, the app still serves traffic.
@@ -74,11 +74,11 @@ traffictape:
     directory: /tmp/traffic-tape
 ```
 
-The tape is files under `output.directory`. Copy that directory off the box when you are done. To ship JSON lines through the app's log driver instead, set `output.console: true` (logger `traffictape.corpus`). A custom store is a `@Bean CaptureSink` — `ObjectStoreCaptureSink` writes the same tree through a put callback if you already have a bucket.
+The tape is files under `output.directory`. Copy that directory off the box when you are done. To ship JSON lines through the app's log driver instead, set `output.console: true` (logger `traffictape.tape`). A custom store is a `@Bean CaptureSink` — `ObjectStoreCaptureSink` writes the same tree through a put callback if you already have a bucket.
 
 Restart after changing `enabled`. [Configuration](docs/configuration.md). Test-scope loop: [Capture from tests](docs/capture-from-tests.md).
 
-In QA, leave it on until `/actuator/traffictape` reports `ready: true`, then copy the corpus and remove the dependency. Expose the endpoint with `management.endpoints.web.exposure.include: [health, traffictape]`.
+In QA, leave it on until `/actuator/traffictape` reports `ready: true`, then copy the tape and remove the dependency. Expose the endpoint with `management.endpoints.web.exposure.include: [health, traffictape]`.
 
 ## Generate stubs
 
@@ -86,7 +86,7 @@ Grab the CLI from the [latest release](https://github.com/arun0009/traffictape/r
 
 ```bash
 java -jar traffictape-cli-${traffictape.version}-all.jar generate \
-  --corpus /tmp/traffic-tape --out ./out
+  --tape /tmp/traffic-tape --out ./out
 ```
 
 Writes WireMock mappings (default), `test-plan.json`, and a JUnit 5 replay skeleton. Mountebank: `--format mountebank`. [Generate](docs/generate.md).
@@ -102,7 +102,7 @@ Need a different store or redaction rule? Expose a `@Bean` of `CaptureSink` or `
 
 ## Docs
 
-[Architecture](docs/architecture.md) · [Capture from tests](docs/capture-from-tests.md) · [File format](docs/corpus-format.md) · [Generate](docs/generate.md) · [Configuration](docs/configuration.md) · [Redaction](docs/redaction.md)
+[Architecture](docs/architecture.md) · [Capture from tests](docs/capture-from-tests.md) · [File format](docs/tape-format.md) · [Generate](docs/generate.md) · [Configuration](docs/configuration.md) · [Redaction](docs/redaction.md)
 
 ## Contributing
 

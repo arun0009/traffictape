@@ -1,12 +1,12 @@
-package io.traffictape.corpus;
+package io.traffictape.tape;
 
 /** Read-this-first note written next to the recorded events. */
-public final class CorpusReadme {
+public final class TapeReadme {
 
     public static final String FILENAME = "README.md";
 
     public static final String TEXT = """
-            # TrafficTape corpus — read this first
+            # TrafficTape — read this first
 
             Observed HTTP, not a spec and not generated tests.
 
@@ -18,6 +18,6 @@ public final class CorpusReadme {
             One regression test per **scenario**, not per endpoint. Mocks = `fanout.json` or `parentExchangeId` + `sequence`. Parameterize ids, timestamps, tokens; do not snapshot secrets.
             """;
 
-    private CorpusReadme() {
+    private TapeReadme() {
     }
 }

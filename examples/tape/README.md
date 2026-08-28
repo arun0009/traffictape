@@ -1,4 +1,4 @@
-This directory is a **hand-written sample corpus** showing the v1 layout. Feed it to `traffictape-cli generate`.
+This directory is a **hand-written sample tape** showing the v1 layout. Feed it to `traffictape-cli generate`.
 
 ```text
 metadata.json       capture window, totals, captureReady

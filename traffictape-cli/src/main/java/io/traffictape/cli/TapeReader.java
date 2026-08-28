@@ -23,7 +23,7 @@ import java.util.zip.GZIPInputStream;
  * Reads events from the sink layout ({@code <dir>/events/*.jsonl[.gz]}), a directory of event
  * files, or a single file. Non-transaction lines such as {@code STATISTICS} are skipped.
  */
-final class CorpusReader {
+final class TapeReader {
 
     private final ObjectMapper mapper = JsonSupport.lenientReader();
 
@@ -88,13 +88,13 @@ final class CorpusReader {
             return List.of(source);
         }
         if (!Files.isDirectory(source)) {
-            throw new IOException("Corpus path does not exist: " + source);
+            throw new IOException("Tape path does not exist: " + source);
         }
         Path events = source.resolve("events");
         Path root = Files.isDirectory(events) ? events : source;
         try (Stream<Path> stream = Files.list(root)) {
             return stream.filter(Files::isRegularFile)
-                    .filter(CorpusReader::isEventFile)
+                    .filter(TapeReader::isEventFile)
                     .sorted(Comparator.comparing(Path::getFileName))
                     .toList();
         }

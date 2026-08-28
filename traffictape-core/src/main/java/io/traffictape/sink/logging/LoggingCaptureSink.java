@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class LoggingCaptureSink implements CaptureSink {
 
-    public static final String LOGGER_NAME = "traffictape.corpus";
+    public static final String LOGGER_NAME = "traffictape.tape";
 
     @FunctionalInterface
     interface LineWriter {

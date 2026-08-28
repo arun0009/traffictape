@@ -1,7 +1,7 @@
 package io.traffictape.capture;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.traffictape.corpus.CorpusCompanionFiles;
+import io.traffictape.tape.TapeFiles;
 import io.traffictape.model.HttpTransaction;
 import io.traffictape.statistics.StatisticsRegistry;
 import org.slf4j.Logger;
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Same corpus tree as the file sink, via {@link ObjectPutter}. Use this from a {@code @Bean CaptureSink}
+ * Same file tree as the file sink, via {@link ObjectPutter}. Use this from a {@code @Bean CaptureSink}
  * when you already have object storage; creating the bucket is infra, not this library.
  * Put failures throw; the worker catches them.
  */
@@ -81,9 +81,9 @@ public final class ObjectStoreCaptureSink implements CaptureSink {
 
     private void writeIndex(StatisticsRegistry.Snapshot snapshot) {
         try {
-            CorpusCompanionFiles.writeStatistics(snapshot, mapper, putter::put);
+            TapeFiles.writeStatistics(snapshot, mapper, putter::put);
             writeMetadata(snapshot);
-            CorpusCompanionFiles.writeSidecars(snapshot, mapper, putter::put);
+            TapeFiles.writeSidecars(snapshot, mapper, putter::put);
         } catch (IOException e) {
             log.debug("TrafficTape index put failed", e);
         }
@@ -92,8 +92,8 @@ public final class ObjectStoreCaptureSink implements CaptureSink {
     private void writeMetadata(StatisticsRegistry.Snapshot snapshot) {
         try {
             putter.put(
-                    CorpusCompanionFiles.METADATA,
-                    CorpusCompanionFiles.pretty(mapper, CorpusCompanionFiles.metadata(metadataTemplate, captureStart, snapshot)),
+                    TapeFiles.METADATA,
+                    TapeFiles.pretty(mapper, TapeFiles.metadata(metadataTemplate, captureStart, snapshot)),
                     "application/json");
         } catch (IOException e) {
             log.debug("TrafficTape metadata.json put failed", e);

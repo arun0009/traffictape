@@ -1,4 +1,4 @@
-# Corpus format
+# Tape format
 
 Schema version: `1`. Machine-readable contract: [`schema/http-transaction-v1.json`](../schema/http-transaction-v1.json). CLI `generate` skips events whose `schemaVersion` is not `1`.
 

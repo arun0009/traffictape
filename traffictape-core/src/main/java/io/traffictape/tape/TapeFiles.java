@@ -1,4 +1,4 @@
-package io.traffictape.corpus;
+package io.traffictape.tape;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.traffictape.TrafficTapeVersion;
@@ -11,7 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** Sidecar files next to events: brief, gaps, fanout, plus shared metadata. */
-public final class CorpusCompanionFiles {
+public final class TapeFiles {
 
     public static final String GAPS = "gaps.json";
     public static final String FANOUT = "fanout.json";
@@ -23,7 +23,7 @@ public final class CorpusCompanionFiles {
         void write(String relativePath, byte[] content, String contentType) throws IOException;
     }
 
-    private CorpusCompanionFiles() {
+    private TapeFiles() {
     }
 
     public static Map<String, Object> metadata(
@@ -50,7 +50,7 @@ public final class CorpusCompanionFiles {
 
     public static void writeSidecars(StatisticsRegistry.Snapshot snapshot, ObjectMapper mapper, Writer writer)
             throws IOException {
-        writer.write(CorpusReadme.FILENAME, CorpusReadme.TEXT.getBytes(StandardCharsets.UTF_8), "text/markdown");
+        writer.write(TapeReadme.FILENAME, TapeReadme.TEXT.getBytes(StandardCharsets.UTF_8), "text/markdown");
         if (snapshot == null) {
             return;
         }

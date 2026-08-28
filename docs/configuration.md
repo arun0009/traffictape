@@ -25,7 +25,7 @@ traffictape:
     directory: /tmp/traffic-tape
     rotate-after-events: 1000
     rotate-after-bytes: 52428800
-    # console: true            # JSON lines on logger traffictape.corpus instead of files
+    # console: true            # JSON lines on logger traffictape.tape instead of files
 
   destinations:
     "inventory.internal:8080": inventory-service
@@ -71,7 +71,7 @@ Header names are case-insensitive and values are globbed case-insensitively. A p
 
 Three things worth knowing:
 
-- **Exclusion covers the whole exchange.** The outbound calls a suppressed request makes are dropped too, even though they do not carry the marker header. Keeping them would put dependencies in the corpus with no parent request, which read as real fan-out. Suppression is carried on the request thread and through the Reactor context for WebClient, so it shares the [async servlet limitation](../README.md#limits): a call made on a thread the filter does not reach is not suppressed.
+- **Exclusion covers the whole exchange.** The outbound calls a suppressed request makes are dropped too, even though they do not carry the marker header. Keeping them would put dependencies on the tape with no parent request, which read as real fan-out. Suppression is carried on the request thread and through the Reactor context for WebClient, so it shares the [async servlet limitation](../README.md#limits): a call made on a thread the filter does not reach is not suppressed.
 - **Suppression is in-process; it does not travel over the wire.** If a suppressed outbound call reaches another service that is also capturing, that service sees an ordinary inbound request — the marker header is on the original request, not on the hop your service made. Either configure the same exclusion there, or have the caller forward the marker header downstream.
 - **Excluded traffic costs nothing.** The decision is made before request or response wrapping, so a suppressed request is not buffered at all.
 
@@ -99,7 +99,7 @@ management:
 | `incomplete` | Those scenarios, worst first, capped at 20. |
 | `droppedEvents` | Queue overflow. The event never reached the sink; the sampler slot is refunded. |
 | `writeErrors` | Sink write attempts that failed (each batch is retried three times). |
-| `lostEvents` | Events in batches that still failed after retries. The corpus is thinner than the traffic. |
+| `lostEvents` | Events in batches that still failed after retries. The tape is thinner than the traffic. |
 | `sinkDisabled` | The default file sink could not create its directory. The console logger never sets this; check `lostEvents` / `writeErrors` instead. |
 
 The two conditions are independent on purpose. A plateau alone can mean traffic simply stopped;
@@ -108,8 +108,7 @@ complete bodies alone say nothing about behaviour you have not seen yet.
 Reaching `ready` is not a guarantee of coverage, only that *this* environment stopped producing
 new behaviour. A nightly or month-end job that has not run yet is still unseen behaviour.
 
-Without Actuator the same numbers are in the trailing `STATISTICS` event of the corpus, which is
-what `gaps.json` and `statistics.json` are built from.
+Without Actuator the same numbers are in `statistics.json` and `gaps.json` on the tape.
 
 ## Flushing and file rotation
 
@@ -121,10 +120,10 @@ A sink resumes numbering after the events files already in the directory and cre
 
 ## Where the tape goes
 
-This library writes a corpus. It does not create buckets, log groups, or IAM.
+This library writes a tape. It does not create buckets, log groups, or IAM.
 
 - **Files (default).** Gzip JSONL under `output.directory`. Copy the directory off the box (volume, `kubectl cp`, CI artifact).
-- **JSON lines.** `output.console: true` writes one JSON object per event to logger `traffictape.corpus` instead of files. Point your log driver at that logger; dump the lines to a `.jsonl` file before `generate`.
+- **JSON lines.** `output.console: true` writes one JSON object per event to logger `traffictape.tape` instead of files. Point your log driver at that logger; dump the lines to a `.jsonl` file before `generate`.
 - **Anything else.** A `@Bean CaptureSink`. `ObjectStoreCaptureSink` writes the same tree through a put callback if you already have object storage.
 
 ```yaml
