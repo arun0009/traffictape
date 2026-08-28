@@ -2,6 +2,8 @@
   "observedRequests": 1284,
   "capturedEvents": 6,
   "droppedEvents": 0,
+  "writeErrors": 0,
+  "lostEvents": 0,
   "bytesCaptured": 512,
   "endpoints": [
     {

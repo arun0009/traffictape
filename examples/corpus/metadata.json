@@ -1,12 +1,14 @@
 {
   "schemaVersion": "1",
   "recorder": "traffictape",
-  "recorderVersion": "0.1.0-SNAPSHOT",
+  "recorderVersion": "0.5.0",
   "serviceName": "widget-service",
   "environment": "qa",
   "captureStart": "2026-08-26T20:00:00Z",
   "captureEnd": "2026-08-26T22:14:00Z",
   "totalObservedRequests": 1284,
   "totalCapturedEvents": 6,
-  "totalDroppedEvents": 0
+  "totalDroppedEvents": 0,
+  "totalLostEvents": 0,
+  "writeErrors": 0
 }

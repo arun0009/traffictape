@@ -106,8 +106,10 @@ management:
 | `plateauReached` | No new scenario for `plateau-after` (default 6h). False until the first request. |
 | `scenariosMissingExamples` | Scenarios with fewer stored bodies than their observations allowed. |
 | `incomplete` | Those scenarios, worst first, capped at 20. |
-| `droppedEvents` / `writeErrors` | Queue overflow and sink failures — the corpus is thinner than the traffic. |
-| `sinkDisabled` | The default file sink could not create its directory. S3 and CloudWatch never set this; check `writeErrors` instead. |
+| `droppedEvents` | Queue overflow. The event never reached the sink; the sampler slot is refunded. |
+| `writeErrors` | Sink write attempts that failed (each batch is retried three times). |
+| `lostEvents` | Events in batches that still failed after retries. The corpus is thinner than the traffic. |
+| `sinkDisabled` | The default file sink could not create its directory. S3 and CloudWatch never set this; check `lostEvents` / `writeErrors` instead. |
 
 The two conditions are independent on purpose. A plateau alone can mean traffic simply stopped;
 complete bodies alone say nothing about behaviour you have not seen yet.

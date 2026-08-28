@@ -1,13 +1,22 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 — 2026-08-28
+
+### Breaking
+
+- CLI `--format` default is `wiremock` (was `both`). Pass `--format both` for WireMock and Mountebank.
+- Corpus companion file is `README.md` (was `FOR_CLAUDE.md`).
+- Capture defaults: 10 examples per scenario, 64 KiB bodies, queue 2000, 10k fingerprints.
+- Destination identity omits default HTTP `:80` and HTTPS `:443`. Keys in `traffictape.destinations` must match that form.
+- `CaptureMetrics.setEnabled` is removed. The Micrometer gauge is always registered when capture is on.
+
+### Changed
 
 - Failed sink writes retry three times; remaining failures increment `lostEvents`.
 - A full capture queue refunds the sampler slot.
 - `BoundedScenarioSampler` caps unique scenario keys.
 - Invalid `traffictape.*` numeric/duration values fail at startup.
-- CLI validates `schemaVersion`, defaults `--format` to `wiremock`, and writes `junit/TrafficTapeReplayTest.java`.
-- Smaller capture defaults: 10 examples/scenario, 64 KiB bodies, queue 2000, 10k fingerprints.
-- Outbound adapters share `OutboundObservation` / `BoundedPrefix`; destination identity strips default HTTP/HTTPS ports.
+- CLI validates `schemaVersion` and writes `junit/TrafficTapeReplayTest.java`.
+- Outbound adapters share `OutboundObservation` / `BoundedPrefix`.
 - Unparseable truncated JSON is still flagged `truncated: true` when omitted.
-- Corpus companion file is `README.md` (was `FOR_CLAUDE.md`).
+- Actuator, `metadata.json`, and `statistics.json` include `lostEvents` / `writeErrors`.

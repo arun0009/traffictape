@@ -21,7 +21,7 @@ One JSON object per line. Gzip. Not one file per request.
 {
   "schemaVersion": "1",
   "recorder": "traffictape",
-  "recorderVersion": "0.4.0",
+  "recorderVersion": "0.5.0",
   "serviceName": "payments-api",
   "environment": "qa",
   "captureStart": "2026-08-26T20:00:00Z",
