@@ -43,21 +43,23 @@ Pin `${traffictape.version}` to the Maven Central badge. Grab the CLI `-all` jar
 
 ## Why
 
-Hand-written stubs are the paths you remembered. A full recording is a dump. TrafficTape sits in between.
+Tests send a sample body. Clients send a different one. You expect a path or a query; they hit one you never handled.
 
-Real HTTP has a `PATCH` that sends `{status}` or `{owner}`, a `404` a client actually hits, two backend calls that belong to one request. TrafficTape groups that into *scenarios* — same route, different shape or status — and keeps a few examples of each. Outbound calls stay on the inbound request that caused them.
+That is the traffic TrafficTape records — HTTP you never wrote a test for. It groups it into *scenarios* (same route, different shape or status) and keeps a few examples of each. Outbound calls stay on the inbound request that caused them.
 
 ```text
 PATCH /assets/{id}
   {status} → 200
   {owner}  → 200
 
+GET  /orders?status=open
+GET  /orders?status=OPEN
+GET  /orders/{id}/history
+
 POST /orders
   → GET  /inventory/{id}
   → POST /ledger
 ```
-
-`generate` writes WireMock stubs for the outbound calls and a test plan for the inbound ones. Then you throw the recorder away.
 
 ## Capture in QA
 
