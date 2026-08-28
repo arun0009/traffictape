@@ -26,8 +26,7 @@ public final class LoggingCaptureSink implements CaptureSink {
     private final ObjectMapper mapper;
 
     public LoggingCaptureSink() {
-        Logger log = LoggerFactory.getLogger(LOGGER_NAME);
-        this(log::info);
+        this(LoggerFactory.getLogger(LOGGER_NAME)::info);
     }
 
     LoggingCaptureSink(LineWriter writer) {
