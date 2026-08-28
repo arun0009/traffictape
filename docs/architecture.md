@@ -12,13 +12,13 @@ TrafficTape records HTTP into files you can copy around (the tape). Spring Boot 
                                     │
                           AsyncCaptureWorker
                                     │
-                    File (canonical) / logger traffictape.tape
+                    files  /  logger traffictape.tape  /  @Bean CaptureSink
                                     │
                                     ▼
                     CLI → WireMock + test-plan.json + JUnit skeleton
 ```
 
-The worker batches: **1000 events**, **50 MB**, or **30s** (`traffictape.flush`). A sink never sees one event on the request thread. File is the real tape. `output.console=true` writes the same JSON as one log line per event; shipping those lines is infra. The CLI can read a directory or a `.jsonl` dump.
+The worker batches: **1000 events**, **50 MB**, or **30s** (`traffictape.flush`). A sink never sees one event on the request thread. Files are the tape `generate` reads. `output.console=true` writes the same JSON as one log line per event. The CLI also reads a `.jsonl` dump.
 
 ## Capture path
 
@@ -39,9 +39,14 @@ adapter → ObservedExchange → CaptureEngine.record()  (never throws)
 
 The SPIs most people replace are **`CaptureSink`** and **`Redactor`**. Also overridable: `Fingerprinter`, `Sampler`, `PathNormalizer`, `CaptureMetrics`.
 
-Wire any of them as a `@Bean`. `@ConditionalOnMissingBean` skips the default. `ObjectStoreCaptureSink` is a helper if you want the same file tree through a put callback; it does not talk to AWS.
+```java
+@Bean
+CaptureSink mySink() {
+    return batch -> { /* your store */ };
+}
+```
 
-A new runtime adapter builds `ObservedExchange` and calls `record`. Do not add framework types to `traffictape-core`.
+`@ConditionalOnMissingBean` skips the default. `ObjectStoreCaptureSink` writes the same file tree through a put callback. A new runtime adapter builds `ObservedExchange` and calls `record`. Do not add framework types to `traffictape-core`.
 
 ## Fail-open
 
@@ -49,7 +54,7 @@ Every adapter and `CaptureEngine.record` swallows capture failures. A full queue
 
 ## Disabled mode
 
-`traffictape.enabled=false` (default) skips auto-configuration: no filter, no queue, no worker, no files.
+`traffictape.enabled=false` (default) skips auto-configuration: no filter, no queue, no worker, no tape.
 
 ## Exchange graph
 

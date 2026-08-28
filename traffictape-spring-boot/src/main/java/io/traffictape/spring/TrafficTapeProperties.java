@@ -20,7 +20,7 @@ import java.util.Map;
 public class TrafficTapeProperties {
 
     /**
-     * Master switch. Disabled by default: no filter, queue, worker, or file I/O.
+     * Master switch. Disabled by default: no filter, queue, worker, or tape writes.
      */
     private boolean enabled = false;
     /** First-N bodies per scenario (not per route). Counts continue after this. */
@@ -213,8 +213,8 @@ public class TrafficTapeProperties {
         private String directory = "/tmp/traffic-tape";
 
         /**
-         * Write JSON lines to logger {@code traffictape.tape} instead of files. Shipping those
-         * lines (log driver, volume, object storage) is infra, not this library.
+         * Write JSON lines to logger {@code traffictape.tape} instead of files.
+         * Shipping those lines is infra, not this library.
          */
         private boolean console = false;
 

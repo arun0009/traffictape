@@ -48,7 +48,7 @@ traffictape:
     json-fields: [password, token, accessToken, refreshToken, secret, clientSecret, ssn, creditCard, cardNumber, cvv]
 ```
 
-Safe default: **omit** rather than capture. Tighten `include.headers` / `include.json-fields` in a 70-service estate if you want an allow-list.
+Safe default: **omit** rather than capture. Tighten `include.headers` / `include.json-fields` if you want an allow-list.
 
 `redaction.json-fields` is applied to JSON fields at any depth, XML elements and attributes, and form-urlencoded pairs. See [redaction](redaction.md) for what each format covers and what it does not.
 
@@ -124,7 +124,7 @@ This library writes a tape. It does not create buckets, log groups, or IAM.
 
 - **Files (default).** Gzip JSONL under `output.directory`. Copy the directory off the box (volume, `kubectl cp`, CI artifact).
 - **JSON lines.** `output.console: true` writes one JSON object per event to logger `traffictape.tape` instead of files. Point your log driver at that logger; dump the lines to a `.jsonl` file before `generate`.
-- **Anything else.** A `@Bean CaptureSink`. `ObjectStoreCaptureSink` writes the same tree through a put callback if you already have object storage.
+- **Anything else.** A `@Bean CaptureSink`. `ObjectStoreCaptureSink` writes the same tree through a put callback if you already have a store.
 
 ```yaml
 traffictape:

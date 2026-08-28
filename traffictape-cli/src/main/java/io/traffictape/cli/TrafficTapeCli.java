@@ -64,14 +64,14 @@ public final class TrafficTapeCli {
                   Reads recorded HTTP and writes mock definitions for the outbound calls the
                   recorded application made, plus a test plan for the inbound requests it served.
 
-                  --tape <path>     Recording directory, its events/ directory, or a single
+                  --tape <path>     Tape directory, its events/ directory, or a single
                                     .jsonl/.jsonl.gz file.
                   --out <dir>       Output directory. Default: ./traffictape-out
                   --format <f>      wiremock | mountebank | both. Default: wiremock
                   --base-port <n>   First port for Mountebank imposters. Default: 4545
                   --help            This message.
 
-                Scenarios are deduplicated by fingerprint, so a recording from several
+                Scenarios are deduplicated by fingerprint, so a tape from several
                 instances yields one stub per distinct behaviour.""");
     }
 

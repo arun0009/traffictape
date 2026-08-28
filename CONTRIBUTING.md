@@ -1,6 +1,6 @@
 # Contributing
 
-TrafficTape records HTTP from a running Spring Boot app. A CLI turns that recording into WireMock stubs. Spring Boot is the first adapter, not the product.
+TrafficTape records HTTP from a running Spring Boot app. A CLI turns that tape into WireMock stubs. Spring Boot is the first adapter, not the product.
 
 ## Principles
 
@@ -31,13 +31,13 @@ Core should stay small. An extension is one SPI plus a `@Bean`.
 ```java
 @Bean
 CaptureSink mySink() {
-    return batch -> { /* S3, GCS, Kafka, … */ };
+    return batch -> { /* your store */ };
 }
 ```
 
 Same pattern for `Redactor` and `PathNormalizer`. `Fingerprinter`, `Sampler`, and `CaptureMetrics` are also replaceable; most users never do. Do not add framework types to `traffictape-core`.
 
-Do not add more sinks to this repository. Unknown output is a `@Bean CaptureSink`. Unknown HTTP clients call `CaptureEngine.record`. Creating buckets, log groups, or IAM is CDK / Terraform, not this library.
+Do not add more sinks to this repository. Unknown output is a `@Bean CaptureSink`. Unknown HTTP clients call `CaptureEngine.record`. Creating buckets, log groups, or IAM is infra, not this library.
 
 See [docs/architecture.md](docs/architecture.md).
 

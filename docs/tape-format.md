@@ -45,7 +45,7 @@ Index of every observed endpoint and scenario, including those that stopped capt
 - `gaps[]` — ranked; `bodiesComplete` = `capturedExamples >= min(count, N)`
 - `fanout[]` — typical outbound hop sequences per inbound scenario
 
-`gaps.json` and `fanout.json` are the same arrays as standalone files. `README.md` is the read-me.
+`gaps.json` and `fanout.json` are the same arrays as standalone files. `README.md` sits next to the events.
 
 ## HTTP_TRANSACTION event
 

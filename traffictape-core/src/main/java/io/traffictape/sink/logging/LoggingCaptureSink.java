@@ -10,8 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * One JSON object per line on logger {@value #LOGGER_NAME}. Does not create log groups, buckets,
- * or any other infrastructure — route this logger with your log driver.
+ * One JSON object per line on logger {@value #LOGGER_NAME}. Route that logger with your log driver;
+ * this class does not create infrastructure.
  */
 public final class LoggingCaptureSink implements CaptureSink {
 

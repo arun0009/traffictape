@@ -1,11 +1,11 @@
 # Security
 
-TrafficTape is designed to observe **QA/staging** traffic, not to become a standing production logger.
+TrafficTape is a **QA/staging** recorder, not a standing production logger.
 
 ## Reporting
 
 Please open a GitHub issue or contact the maintainers privately for sensitive reports.
-Do not attach real captured corpora that may contain credentials or PII.
+Do not attach a real captured tape that may contain credentials or PII.
 
 ## Defaults
 
@@ -19,5 +19,5 @@ Do not attach real captured corpora that may contain credentials or PII.
 ## What not to do
 
 - Do not enable TrafficTape against production traffic that contains real PII unless you have tightened `capture.include` / `redaction` for that environment
-- Do not commit captured corpora from real systems
-- Do not log request/response bodies to the application logger
+- Do not commit captured tapes from real systems
+- `output.console` writes redacted JSON to logger `traffictape.tape`. Route that logger on its own; do not mix it into the application log.

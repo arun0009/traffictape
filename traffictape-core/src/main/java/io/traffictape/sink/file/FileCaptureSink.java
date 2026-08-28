@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Writes:
+ * Writes the tape:
  * <pre>
  *   {directory}/
  *     README.md

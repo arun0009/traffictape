@@ -58,7 +58,7 @@ Each case lists the outbound scenarios that the same inbound request caused, ord
 
 ## Deduplication
 
-Scenarios are keyed by fingerprint, so a tape collected from four Fargate tasks yields one stub per distinct behaviour rather than four copies. This is the offline half of the per-JVM sampler budget.
+Scenarios are keyed by fingerprint, so a tape from several instances yields one stub per distinct behaviour rather than one copy per JVM. This is the offline half of the per-process sampler budget.
 
 ## Matching
 
