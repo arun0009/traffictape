@@ -5,7 +5,7 @@
 
     <groupId>io.github.arun0009</groupId>
     <artifactId>traffictape</artifactId>
-    <version>0.5.2-SNAPSHOT</version>
+    <version>0.6.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>TrafficTape</name>
     <description>Privacy-aware HTTP traffic recorder. Spring Boot is the first capture adapter.</description>
