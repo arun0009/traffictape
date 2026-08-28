@@ -95,14 +95,19 @@ public final class JerseyClientCaptureFilter implements ClientRequestFilter, Cli
     }
 
     private static String header(MultivaluedMap<String, String> headers, String name) {
-        List<String> values = headers.get(name);
-        if (values == null || values.isEmpty()) {
-            return headers.entrySet().stream()
-                    .filter(e -> e.getKey() != null && e.getKey().equalsIgnoreCase(name))
-                    .map(e -> e.getValue().isEmpty() ? null : e.getValue().get(0))
-                    .findFirst()
-                    .orElse(null);
+        if (headers == null) {
+            return null;
         }
-        return values.get(0);
+        List<String> values = headers.get(name);
+        if (values != null && !values.isEmpty()) {
+            return values.get(0);
+        }
+        for (var e : headers.entrySet()) {
+            if (e.getKey() != null && e.getKey().equalsIgnoreCase(name)) {
+                List<String> v = e.getValue();
+                return v == null || v.isEmpty() ? null : v.get(0);
+            }
+        }
+        return null;
     }
 }
