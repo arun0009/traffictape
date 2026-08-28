@@ -45,12 +45,12 @@ final class StubPlan {
         this.collisions = collisions;
     }
 
-    static StubPlan of(Corpus corpus) {
+    static StubPlan of(Tape tape) {
         Map<String, Stub> chosen = new LinkedHashMap<>();
         List<String> collisions = new ArrayList<>();
 
-        corpus.outboundScenarios().forEach((scenarioId, tx) -> {
-            List<String> bodyFields = corpus.needsBodyMatching(tx)
+        tape.outboundScenarios().forEach((scenarioId, tx) -> {
+            List<String> bodyFields = tape.needsBodyMatching(tx)
                     ? StubSupport.topLevelJsonFields(tx.request() == null ? null : tx.request().body())
                     : List.of();
             Stub candidate = new Stub(scenarioId, tx, bodyFields);

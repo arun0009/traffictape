@@ -1,3 +1,5 @@
+# Copy into the app. Capture stays off until enabled: true.
+
 spring:
   application:
     name: my-service

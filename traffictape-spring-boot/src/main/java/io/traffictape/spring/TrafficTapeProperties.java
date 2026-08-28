@@ -13,14 +13,14 @@ import java.util.Map;
  * {@code traffictape.enabled=true}; nothing is installed until then.
  *
  * <p>Nested groups: {@link Flush} (when the writer flushes), {@link Output} (where the
- * corpus is written and when files rotate), {@link Capture} (which traffic is eligible),
+ * tape is written and when files rotate), {@link Capture} (which traffic is eligible),
  * and {@link Redaction} (what is scrubbed before anything is written).
  */
 @ConfigurationProperties(prefix = "traffictape")
 public class TrafficTapeProperties {
 
     /**
-     * Master switch. Disabled by default: no filter, queue, worker, or file I/O.
+     * Master switch. Disabled by default: no filter, queue, worker, or tape writes.
      */
     private boolean enabled = false;
     /** First-N bodies per scenario (not per route). Counts continue after this. */
@@ -164,6 +164,9 @@ public class TrafficTapeProperties {
         if (flush.getMaxEvents() <= 0 || flush.getMaxBytes() <= 0) {
             throw new IllegalArgumentException("traffictape.flush.max-events and max-bytes must be > 0");
         }
+        if (output.isConsole()) {
+            return;
+        }
         if (output.getDirectory() == null || output.getDirectory().isBlank()) {
             throw new IllegalArgumentException("traffictape.output.directory must not be blank");
         }
@@ -206,8 +209,14 @@ public class TrafficTapeProperties {
     }
 
     public static class Output {
-        /** Output directory. Use a disposable path; this is not meant to persist. */
+        /** Output directory. Use a disposable path; this is not meant to persist. Ignored when {@code console} is true. */
         private String directory = "/tmp/traffic-tape";
+
+        /**
+         * Write JSON lines to logger {@code traffictape.tape} instead of files.
+         * Shipping those lines is infra, not this library.
+         */
+        private boolean console = false;
 
         /**
          * When to start a new events file. Independent of {@code flush.*}, which only controls how
@@ -223,6 +232,14 @@ public class TrafficTapeProperties {
 
         public void setDirectory(String directory) {
             this.directory = directory;
+        }
+
+        public boolean isConsole() {
+            return console;
+        }
+
+        public void setConsole(boolean console) {
+            this.console = console;
         }
 
         public int getRotateAfterEvents() {

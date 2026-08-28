@@ -7,7 +7,7 @@ DEMO_JAR := tests/traffictape-integration-tests/target/traffictape-integration-t
 DEMO_DIR  := target/demo
 DEMO_PORT := 18080
 
-CORPUS ?= $(DEMO_DIR)/corpus
+TAPE ?= $(DEMO_DIR)/tape
 OUT    ?= $(DEMO_DIR)/mocks
 
 .DEFAULT_GOAL := help
@@ -17,7 +17,7 @@ help: ## Show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
 	@echo
-	@echo "  generate accepts CORPUS=<dir> OUT=<dir>"
+	@echo "  generate accepts TAPE=<dir> OUT=<dir>"
 	@echo "  bench accepts BENCH_ARGS=<jmh options>, e.g. BENCH_ARGS='-f 3 -prof gc'"
 
 build: ## Compile and package every module
@@ -40,11 +40,11 @@ clean: ## Remove build output
 
 demo: quick ## Capture from the demo app over real HTTP, then generate mocks
 	@mkdir -p $(DEMO_DIR)
-	@rm -rf $(CORPUS) $(OUT)
+	@rm -rf $(TAPE) $(OUT)
 	@set -e; \
 	java -jar $(DEMO_JAR) \
 		--server.port=$(DEMO_PORT) \
-		--traffictape.output.directory=$(CORPUS) \
+		--traffictape.output.directory=$(TAPE) \
 		--traffictape.flush.interval=1s > $(DEMO_DIR)/app.log 2>&1 & \
 	APP=$$!; \
 	trap 'kill $$APP 2>/dev/null || true' EXIT; \
@@ -67,11 +67,11 @@ demo: quick ## Capture from the demo app over real HTTP, then generate mocks
 	curl -s http://localhost:$(DEMO_PORT)/actuator/traffictape; echo; \
 	kill $$APP 2>/dev/null || true; wait $$APP 2>/dev/null || true; \
 	echo '--> generating mocks'; \
-	java -jar $(CLI_JAR) generate --corpus $(CORPUS) --out $(OUT)
+	java -jar $(CLI_JAR) generate --tape $(TAPE) --out $(OUT)
 
-generate: ## Generate mocks from a corpus: make generate CORPUS=<dir> OUT=<dir>
+generate: ## Generate mocks from a tape: make generate TAPE=<dir> OUT=<dir>
 	@test -f $(CLI_JAR) || $(MAKE) quick
-	java -jar $(CLI_JAR) generate --corpus $(CORPUS) --out $(OUT)
+	java -jar $(CLI_JAR) generate --tape $(TAPE) --out $(OUT)
 
 example: quick ## Run the demo app in the foreground
 	java -jar $(DEMO_JAR) --server.port=$(DEMO_PORT)

@@ -19,11 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ObjectStoreCaptureSinkTest {
 
     @Test
-    void writesSameCorpusLayoutAsFiles() throws Exception {
+    void writesSameTapeLayoutAsFiles() throws Exception {
         Map<String, byte[]> store = new LinkedHashMap<>();
         ObjectStoreCaptureSink sink = new ObjectStoreCaptureSink(
                 (path, content, type) -> store.put(path, content),
-                Map.of("serviceName", "demo", "output", "s3://bucket/demo"));
+                Map.of("serviceName", "demo", "store", "custom"));
         HttpTransaction tx = new HttpTransaction(
                 "1", EventType.HTTP_TRANSACTION, Direction.INBOUND, Instant.parse("2026-08-26T22:00:00Z"),
                 null, null, "GET", "/widgets/{id}", "/widgets/1", Map.of(), null, "none", "200",
@@ -44,6 +44,6 @@ class ObjectStoreCaptureSinkTest {
         }
         assertThat(jsonl).contains("\"GET\"").contains("/widgets/{id}");
         String metadata = new String(store.get("metadata.json"), StandardCharsets.UTF_8);
-        assertThat(metadata).contains("traffictape").contains("demo").contains("s3://bucket/demo");
+        assertThat(metadata).contains("traffictape").contains("demo").contains("custom");
     }
 }

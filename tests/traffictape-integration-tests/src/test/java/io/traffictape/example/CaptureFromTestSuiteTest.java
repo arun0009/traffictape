@@ -40,7 +40,7 @@ class CaptureFromTestSuiteTest {
 
     // Created eagerly: @DynamicPropertySource runs before JUnit resolves a static @TempDir.
     private static final Path WORK = createWorkDirectory();
-    private static final Path CORPUS = WORK.resolve("corpus");
+    private static final Path TAPE = WORK.resolve("tape");
     private static final Path GENERATED = WORK.resolve("generated");
 
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
@@ -49,7 +49,7 @@ class CaptureFromTestSuiteTest {
     @DynamicPropertySource
     static void captureIntoTempDirectory(DynamicPropertyRegistry registry) {
         registry.add("traffictape.enabled", () -> true);
-        registry.add("traffictape.output.directory", CORPUS::toString);
+        registry.add("traffictape.output.directory", TAPE::toString);
         // A test suite is short-lived: flush eagerly rather than on the 30s interval.
         registry.add("traffictape.flush.max-events", () -> 1);
         registry.add("traffictape.flush.interval", () -> "100ms");
@@ -88,14 +88,14 @@ class CaptureFromTestSuiteTest {
         // A normal suite does not need this: JVM exit at the end of `mvn test` does the same.
         worker.close();
 
-        assertThat(CORPUS.resolve("metadata.json")).exists();
-        assertThat(CORPUS.resolve("statistics.json")).exists();
+        assertThat(TAPE.resolve("metadata.json")).exists();
+        assertThat(TAPE.resolve("statistics.json")).exists();
         assertThat(eventFiles()).isNotEmpty();
 
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
         PrintStream out = new PrintStream(captured, true, StandardCharsets.UTF_8);
         int status = TrafficTapeCli.run(new String[]{
-                "generate", "--corpus", CORPUS.toString(), "--out", GENERATED.toString()}, out, out);
+                "generate", "--tape", TAPE.toString(), "--out", GENERATED.toString()}, out, out);
         assertThat(status).isZero();
 
         String stubs = readAll(GENERATED.resolve("wiremock").resolve("mappings"));
@@ -145,7 +145,7 @@ class CaptureFromTestSuiteTest {
     }
 
     private static List<Path> eventFiles() throws IOException {
-        try (Stream<Path> files = Files.list(CORPUS.resolve("events"))) {
+        try (Stream<Path> files = Files.list(TAPE.resolve("events"))) {
             return files.toList();
         }
     }

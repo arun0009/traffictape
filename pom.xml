@@ -8,7 +8,7 @@
     <version>0.5.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>TrafficTape</name>
-    <description>Privacy-aware HTTP traffic corpus and flight recorder. Spring Boot is the first capture adapter.</description>
+    <description>Privacy-aware HTTP traffic recorder. Spring Boot is the first capture adapter.</description>
     <url>https://github.com/arun0009/traffictape</url>
 
     <licenses>
@@ -30,8 +30,6 @@
     <modules>
         <module>traffictape-core</module>
         <module>traffictape-spring-boot</module>
-        <module>traffictape-sink-s3</module>
-        <module>traffictape-sink-cloudwatch</module>
         <module>traffictape-cli</module>
         <module>tests/traffictape-integration-tests</module>
         <module>tests/traffictape-overhead-tests</module>
@@ -53,22 +51,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-boot.version>3.5.16</spring-boot.version>
-        <aws-sdk.version>2.54.2</aws-sdk.version>
         <okhttp.version>4.12.0</okhttp.version>
-        <testcontainers.version>1.21.4</testcontainers.version>
-        <testcontainers-floci.version>1.4.0</testcontainers-floci.version>
         <jmh.version>1.37</jmh.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers-bom</artifactId>
-                <version>${testcontainers.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -83,16 +71,6 @@
             </dependency>
             <dependency>
                 <groupId>io.github.arun0009</groupId>
-                <artifactId>traffictape-sink-s3</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.arun0009</groupId>
-                <artifactId>traffictape-sink-cloudwatch</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.arun0009</groupId>
                 <artifactId>traffictape-spring-boot</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -100,13 +78,6 @@
                 <groupId>io.github.arun0009</groupId>
                 <artifactId>traffictape-cli</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>bom</artifactId>
-                <version>${aws-sdk.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.squareup.okhttp3</groupId>
@@ -117,11 +88,6 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>mockwebserver</artifactId>
                 <version>${okhttp.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.floci</groupId>
-                <artifactId>testcontainers-floci</artifactId>
-                <version>${testcontainers-floci.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.openjdk.jmh</groupId>
@@ -189,7 +155,7 @@
                             <jreleaser>
                                 <project>
                                     <name>traffictape</name>
-                                    <description>Privacy-aware HTTP traffic corpus and flight recorder</description>
+                                    <description>Privacy-aware HTTP traffic recorder</description>
                                     <links>
                                         <homepage>https://github.com/arun0009/traffictape</homepage>
                                     </links>

@@ -1,18 +1,18 @@
 # Generating mocks and a test plan
 
-`traffictape-cli` reads a corpus and writes mock definitions. It is offline: it opens no sockets and needs no application on the classpath.
+`traffictape-cli` reads a tape and writes mock definitions. It is offline: it opens no sockets and needs no application on the classpath.
 
 Download the `-all` jar from the [latest release](https://github.com/arun0009/traffictape/releases/latest). It is self-contained; nothing to add to your build.
 
 ```bash
 java -jar traffictape-cli-${traffictape.version}-all.jar generate \
-  --corpus /tmp/traffic-tape \
+  --tape /tmp/traffic-tape \
   --out ./traffictape-out
 ```
 
 ```text
---corpus <path>   Corpus directory, its events/ directory, or a single
-                  .jsonl/.jsonl.gz file (for example a CloudWatch dump).
+--tape <path>     Tape directory, its events/ directory, or a single
+                  .jsonl/.jsonl.gz file.
 --out <dir>       Output directory. Default: ./traffictape-out
 --format <f>      wiremock | mountebank | both. Default: wiremock
 --base-port <n>   First port for Mountebank imposters. Default: 4545
@@ -58,11 +58,11 @@ Each case lists the outbound scenarios that the same inbound request caused, ord
 
 ## Deduplication
 
-Scenarios are keyed by fingerprint, so a corpus collected from four Fargate tasks yields one stub per distinct behaviour rather than four copies. This is the offline half of the per-JVM sampler budget.
+Scenarios are keyed by fingerprint, so a tape from several instances yields one stub per distinct behaviour rather than one copy per JVM. This is the offline half of the per-process sampler budget.
 
 ## Matching
 
-| Corpus | Stub |
+| Tape | Stub |
 |---|---|
 | `route` with `{placeholders}` | `urlPathPattern` / Mountebank `matches`, one path segment per placeholder |
 | `route` without placeholders | `urlPath` / Mountebank `equals` |

@@ -32,7 +32,7 @@ public class TrafficTapeEndpoint {
     }
 
     /**
-     * Reports whether the corpus looks complete enough to stop capturing. {@code ready} is
+     * Reports whether the tape looks complete enough to stop capturing. {@code ready} is
      * {@code true} once capture has plateaued and no scenario is still missing bodies.
      *
      * @return capture readiness, counts, and up to 20 incomplete scenarios

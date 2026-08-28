@@ -15,9 +15,9 @@ import java.util.Map;
  */
 final class TestPlanGenerator {
 
-    Map<String, Object> generate(Corpus corpus) {
+    Map<String, Object> generate(Tape tape) {
         List<Map<String, Object>> cases = new ArrayList<>();
-        corpus.inboundScenarios().forEach((scenarioId, tx) -> {
+        tape.inboundScenarios().forEach((scenarioId, tx) -> {
             Map<String, Object> request = new LinkedHashMap<>();
             request.put("method", tx.method());
             request.put("route", tx.route());
@@ -45,8 +45,8 @@ final class TestPlanGenerator {
             }
 
             List<Map<String, Object>> dependsOn = new ArrayList<>();
-            for (String outboundScenario : corpus.dependenciesOf(scenarioId)) {
-                HttpTransaction outbound = corpus.outboundScenarios().get(outboundScenario);
+            for (String outboundScenario : tape.dependenciesOf(scenarioId)) {
+                HttpTransaction outbound = tape.outboundScenarios().get(outboundScenario);
                 Map<String, Object> dependency = new LinkedHashMap<>();
                 dependency.put("scenario", outboundScenario);
                 if (outbound != null) {
@@ -69,14 +69,14 @@ final class TestPlanGenerator {
         });
 
         Map<String, Object> counts = new LinkedHashMap<>();
-        counts.put("events", corpus.totalEvents());
-        counts.put("inboundScenarios", corpus.inboundScenarios().size());
-        counts.put("outboundScenarios", corpus.outboundScenarios().size());
+        counts.put("events", tape.totalEvents());
+        counts.put("inboundScenarios", tape.inboundScenarios().size());
+        counts.put("outboundScenarios", tape.outboundScenarios().size());
 
         Map<String, Object> plan = new LinkedHashMap<>();
         plan.put("schemaVersion", "1");
         plan.put("generatedAt", Instant.now().toString());
-        plan.put("corpus", counts);
+        plan.put("tape", counts);
         plan.put("cases", cases);
         return plan;
     }

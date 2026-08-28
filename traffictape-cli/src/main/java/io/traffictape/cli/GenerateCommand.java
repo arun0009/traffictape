@@ -17,16 +17,16 @@ final class GenerateCommand {
     private final ObjectWriter writer = JsonSupport.prettyWriter();
 
     int execute(TrafficTapeCli.Options options, PrintStream out) throws IOException {
-        CorpusReader.Result read = new CorpusReader().read(options.corpus());
+        TapeReader.Result read = new TapeReader().read(options.tape());
         if (read.transactions().isEmpty()) {
-            out.println("No HTTP_TRANSACTION events found in " + options.corpus());
+            out.println("No HTTP_TRANSACTION events found in " + options.tape());
             return 1;
         }
-        Corpus corpus = Corpus.index(read.transactions());
+        Tape tape = Tape.index(read.transactions());
 
         out.printf("Read %d events from %d file(s): %d inbound scenarios, %d outbound scenarios.%n",
                 read.transactions().size(), read.filesRead(),
-                corpus.inboundScenarios().size(), corpus.outboundScenarios().size());
+                tape.inboundScenarios().size(), tape.outboundScenarios().size());
         if (read.filesTruncated() > 0) {
             out.printf("  %d file(s) ended mid-stream; earlier events in them were kept.%n",
                     read.filesTruncated());
@@ -39,7 +39,7 @@ final class GenerateCommand {
         }
 
         Files.createDirectories(options.out());
-        StubPlan plan = StubPlan.of(corpus);
+        StubPlan plan = StubPlan.of(tape);
         List<String> attention = new ArrayList<>(plan.collisions());
         for (StubPlan.Stub stub : plan.stubs()) {
             for (String warning : StubSupport.bodyWarnings(stub.transaction())) {
@@ -77,14 +77,14 @@ final class GenerateCommand {
         }
 
         Path testPlan = options.out().resolve("test-plan.json");
-        write(testPlan, new TestPlanGenerator().generate(corpus));
-        out.printf("Wrote %d test case(s) to %s%n", corpus.inboundScenarios().size(), testPlan);
+        write(testPlan, new TestPlanGenerator().generate(tape));
+        out.printf("Wrote %d test case(s) to %s%n", tape.inboundScenarios().size(), testPlan);
 
         Path junit = options.out().resolve("junit");
         new JunitGenerator().write(junit);
         out.printf("Wrote JUnit skeleton to %s%n", junit.resolve(JunitGenerator.CLASS_NAME));
 
-        if (corpus.outboundScenarios().isEmpty()) {
+        if (tape.outboundScenarios().isEmpty()) {
             attention.add("No outbound calls were captured, so there is nothing to mock. "
                     + "Check that HTTP clients are built from the injected builders.");
         }

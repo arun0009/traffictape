@@ -14,9 +14,7 @@
 
 </div>
 
-Add this in **test scope**, run the suite you already have, generate WireMock stubs. No QA environment required.
-
-It is not a logger and it does not stay in production.
+A Spring Boot recorder and an offline CLI. Add it in **test scope**, run the suite you already have, generate WireMock stubs. Java 17+, Spring Boot 3.x. Capture is off until you turn it on, and it never fails the application request.
 
 ```xml
 <dependency>
@@ -38,10 +36,10 @@ traffictape:
 ```bash
 mvn test
 java -jar traffictape-cli-${traffictape.version}-all.jar generate \
-  --corpus target/traffic-tape --out ./out
+  --tape target/traffic-tape --out ./out
 ```
 
-Off by default in a real app. If capture breaks, the app still serves traffic.
+Pin `${traffictape.version}` to the Maven Central badge. Grab the CLI `-all` jar from the [latest release](https://github.com/arun0009/traffictape/releases/latest). Test-scope loop in detail: [Capture from tests](docs/capture-from-tests.md).
 
 ## Why
 
@@ -61,45 +59,39 @@ POST /orders
 
 First 10 examples per scenario (configurable). Counts continue after bodies stop.
 
-## Install (QA / a running service)
+## Capture in QA
 
-Java 17+, Spring Boot 3.x. Inbound: Spring MVC **or** JAX-RS/Jersey on a servlet container. Same artifact without `test` scope.
-
-Outbound capture needs an injected `RestClient.Builder`, `RestTemplateBuilder`, `WebClient.Builder`, an `OkHttpClient` Spring bean, or a JAX-RS `Client` Spring bean. `RestClient.create()`, `ClientBuilder.newClient()`, and a client you construct yourself are not recorded.
-
-Add **one** of these. A sink includes the starter; do not add both.
-
-| Where the tape goes | Artifact |
-|---|---|
-| Local disk | `traffictape-spring-boot` |
-| S3 | `traffictape-sink-s3` |
-| CloudWatch Logs | `traffictape-sink-cloudwatch` |
+Same artifact, without `test` scope. Inbound: Spring MVC **or** JAX-RS/Jersey on a servlet container. Outbound: an injected `RestClient.Builder`, `RestTemplateBuilder`, `WebClient.Builder`, `OkHttpClient` bean, or JAX-RS `Client` bean. A client you construct yourself is not recorded.
 
 ```yaml
 traffictape:
-  enabled: false
+  enabled: true
   output:
     directory: /tmp/traffic-tape
 ```
 
-Restart after changing `enabled`. [Configuration](docs/configuration.md). Test-scope loop: [Capture from tests](docs/capture-from-tests.md).
+Leave it on until `/actuator/traffictape` reports `ready: true`, copy the tape, remove the dependency. Expose the endpoint with `management.endpoints.web.exposure.include: [health, traffictape]`. Restart after changing `enabled`. [Configuration](docs/configuration.md).
 
-In QA, leave it on until `/actuator/traffictape` reports `ready: true`, then copy the corpus and remove the dependency. Expose the endpoint with `management.endpoints.web.exposure.include: [health, traffictape]`.
+**Where the tape goes**
 
-Fargate: [CloudWatch](docs/configuration.md#fargate--cloudwatch) or [S3](docs/configuration.md#fargate--s3). CloudWatch is a JSON-line transport; file and S3 are the canonical corpus tree.
+- **Files (default)** — gzip JSONL under `output.directory`. Copy the folder off the box.
+- **Log driver** — `output.console: true` writes JSON lines to logger `traffictape.tape`.
+- **Anything else** — a `@Bean CaptureSink`.
 
-## Generate stubs
+This library writes the tape. It does not create buckets, log groups, or IAM.
 
-Grab the CLI from the [latest release](https://github.com/arun0009/traffictape/releases/latest).
+## Generate
 
 ```bash
 java -jar traffictape-cli-${traffictape.version}-all.jar generate \
-  --corpus /tmp/traffic-tape --out ./out
+  --tape /tmp/traffic-tape --out ./out
 ```
 
 Writes WireMock mappings (default), `test-plan.json`, and a JUnit 5 replay skeleton. Mountebank: `--format mountebank`. [Generate](docs/generate.md).
 
-Need a different store or redaction rule? Expose a `@Bean` of `CaptureSink` or `Redactor`.
+## Extending
+
+A `@Bean` of `CaptureSink` or `Redactor` replaces the default. `ObjectStoreCaptureSink` writes the same file tree through a put callback if you already have a store. Unknown HTTP clients call `CaptureEngine.record`.
 
 ## Limits
 
@@ -110,7 +102,7 @@ Need a different store or redaction rule? Expose a `@Bean` of `CaptureSink` or `
 
 ## Docs
 
-[Architecture](docs/architecture.md) · [Capture from tests](docs/capture-from-tests.md) · [File format](docs/corpus-format.md) · [Generate](docs/generate.md) · [Configuration](docs/configuration.md) · [Redaction](docs/redaction.md)
+[Architecture](docs/architecture.md) · [Capture from tests](docs/capture-from-tests.md) · [Tape format](docs/tape-format.md) · [Generate](docs/generate.md) · [Configuration](docs/configuration.md) · [Redaction](docs/redaction.md)
 
 ## Contributing
 

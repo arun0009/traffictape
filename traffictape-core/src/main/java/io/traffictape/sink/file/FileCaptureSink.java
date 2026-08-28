@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.traffictape.capture.CaptureBatch;
 import io.traffictape.capture.CaptureSink;
 import io.traffictape.capture.JsonSupport;
-import io.traffictape.corpus.CorpusCompanionFiles;
+import io.traffictape.tape.TapeFiles;
 import io.traffictape.model.HttpTransaction;
 import io.traffictape.statistics.StatisticsRegistry;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Writes:
+ * Writes the tape:
  * <pre>
  *   {directory}/
  *     README.md
@@ -189,10 +189,10 @@ public final class FileCaptureSink implements CaptureSink {
 
     private void writeIndex(StatisticsRegistry.Snapshot snapshot) {
         try {
-            CorpusCompanionFiles.Writer writer = (path, bytes, type) -> atomicWrite(directory.resolve(path), bytes);
-            CorpusCompanionFiles.writeStatistics(snapshot, mapper, writer);
+            TapeFiles.Writer writer = (path, bytes, type) -> atomicWrite(directory.resolve(path), bytes);
+            TapeFiles.writeStatistics(snapshot, mapper, writer);
             writeMetadata(snapshot);
-            CorpusCompanionFiles.writeSidecars(snapshot, mapper, writer);
+            TapeFiles.writeSidecars(snapshot, mapper, writer);
         } catch (IOException e) {
             log.debug("TrafficTape index write failed", e);
         }
@@ -200,8 +200,8 @@ public final class FileCaptureSink implements CaptureSink {
 
     private void writeMetadata(StatisticsRegistry.Snapshot snapshot) throws IOException {
         atomicWrite(
-                directory.resolve(CorpusCompanionFiles.METADATA),
-                CorpusCompanionFiles.pretty(mapper, CorpusCompanionFiles.metadata(metadataTemplate, captureStart, snapshot)));
+                directory.resolve(TapeFiles.METADATA),
+                TapeFiles.pretty(mapper, TapeFiles.metadata(metadataTemplate, captureStart, snapshot)));
     }
 
     private static void atomicWrite(Path target, byte[] bytes) throws IOException {

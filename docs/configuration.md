@@ -25,16 +25,7 @@ traffictape:
     directory: /tmp/traffic-tape
     rotate-after-events: 1000
     rotate-after-bytes: 52428800
-    # Fargate without S3: add traffictape-sink-cloudwatch.
-    # cloudwatch:
-    #   log-group: /traffictape/qa/payments-api
-    #   log-stream: ""              # default: hostname; one stream per task
-    #   region: us-east-1
-    # If a bucket is allowed instead:
-    # s3:
-    #   bucket: qa-traffic-tape
-    #   prefix: payments-api
-    #   unique-per-instance: true
+    # console: true            # JSON lines on logger traffictape.tape instead of files
 
   destinations:
     "inventory.internal:8080": inventory-service
@@ -57,7 +48,7 @@ traffictape:
     json-fields: [password, token, accessToken, refreshToken, secret, clientSecret, ssn, creditCard, cardNumber, cvv]
 ```
 
-Safe default: **omit** rather than capture. Tighten `include.headers` / `include.json-fields` in a 70-service estate if you want an allow-list.
+Safe default: **omit** rather than capture. Tighten `include.headers` / `include.json-fields` if you want an allow-list.
 
 `redaction.json-fields` is applied to JSON fields at any depth, XML elements and attributes, and form-urlencoded pairs. See [redaction](redaction.md) for what each format covers and what it does not.
 
@@ -80,7 +71,7 @@ Header names are case-insensitive and values are globbed case-insensitively. A p
 
 Three things worth knowing:
 
-- **Exclusion covers the whole exchange.** The outbound calls a suppressed request makes are dropped too, even though they do not carry the marker header. Keeping them would put dependencies in the corpus with no parent request, which read as real fan-out. Suppression is carried on the request thread and through the Reactor context for WebClient, so it shares the [async servlet limitation](../README.md#limits): a call made on a thread the filter does not reach is not suppressed.
+- **Exclusion covers the whole exchange.** The outbound calls a suppressed request makes are dropped too, even though they do not carry the marker header. Keeping them would put dependencies on the tape with no parent request, which read as real fan-out. Suppression is carried on the request thread and through the Reactor context for WebClient, so it shares the [async servlet limitation](../README.md#limits): a call made on a thread the filter does not reach is not suppressed.
 - **Suppression is in-process; it does not travel over the wire.** If a suppressed outbound call reaches another service that is also capturing, that service sees an ordinary inbound request — the marker header is on the original request, not on the hop your service made. Either configure the same exclusion there, or have the caller forward the marker header downstream.
 - **Excluded traffic costs nothing.** The decision is made before request or response wrapping, so a suppressed request is not buffered at all.
 
@@ -108,8 +99,8 @@ management:
 | `incomplete` | Those scenarios, worst first, capped at 20. |
 | `droppedEvents` | Queue overflow. The event never reached the sink; the sampler slot is refunded. |
 | `writeErrors` | Sink write attempts that failed (each batch is retried three times). |
-| `lostEvents` | Events in batches that still failed after retries. The corpus is thinner than the traffic. |
-| `sinkDisabled` | The default file sink could not create its directory. S3 and CloudWatch never set this; check `lostEvents` / `writeErrors` instead. |
+| `lostEvents` | Events in batches that still failed after retries. The tape is thinner than the traffic. |
+| `sinkDisabled` | The default file sink could not create its directory. The console logger never sets this; check `lostEvents` / `writeErrors` instead. |
 
 The two conditions are independent on purpose. A plateau alone can mean traffic simply stopped;
 complete bodies alone say nothing about behaviour you have not seen yet.
@@ -117,8 +108,7 @@ complete bodies alone say nothing about behaviour you have not seen yet.
 Reaching `ready` is not a guarantee of coverage, only that *this* environment stopped producing
 new behaviour. A nightly or month-end job that has not run yet is still unseen behaviour.
 
-Without Actuator the same numbers are in the trailing `STATISTICS` event of the corpus, which is
-what `gaps.json` and `statistics.json` are built from.
+Without Actuator the same numbers are in `statistics.json` and `gaps.json` on the tape.
 
 ## Flushing and file rotation
 
@@ -128,64 +118,19 @@ A sink resumes numbering after the events files already in the directory and cre
 
 `destinations` maps outbound host[:port] to a service name stored on the event.
 
-## Fargate / CloudWatch
+## Where the tape goes
 
-When S3 is blocked, use this sink and set `traffictape.output.cloudwatch.log-group`. It brings `traffictape-spring-boot` with it, so this one dependency replaces the starter in your build.
+This library writes a tape. It does not create buckets, log groups, or IAM.
 
-```xml
-<dependency>
-    <groupId>io.github.arun0009</groupId>
-    <artifactId>traffictape-sink-cloudwatch</artifactId>
-    <version>${traffictape.version}</version>
-</dependency>
-```
-
-One group, one stream per task (hostname by default). The worker batches; this sink splits `PutLogEvents` under 1&nbsp;MB. Failed puts drop the batch.
-
-Each flush writes:
-
-- `HTTP_TRANSACTION` — same JSON as a corpus line
-- `STATISTICS` — index plus `captureReady`, `lastNewScenarioAt`, truncated `gaps` and `fanout` (no extra fetch)
+- **Files (default).** Gzip JSONL under `output.directory`. Copy the directory off the box (volume, `kubectl cp`, CI artifact).
+- **JSON lines.** `output.console: true` writes one JSON object per event to logger `traffictape.tape` instead of files. Point your log driver at that logger; dump the lines to a `.jsonl` file before `generate`.
+- **Anything else.** A `@Bean CaptureSink`. `ObjectStoreCaptureSink` writes the same tree through a put callback if you already have a store.
 
 ```yaml
 traffictape:
   enabled: true
   output:
-    cloudwatch:
-      log-group: /traffictape/qa/payments-api
+    console: true
 ```
 
-Task role: `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents`. Insights:
-
-```text
-filter eventType = "STATISTICS" | sort @timestamp desc | limit 1
-filter eventType = "HTTP_TRANSACTION" | stats count() by fingerprints.endpoint.label
-```
-
-Dump: `aws logs filter-log-events --log-group-name /traffictape/qa/payments-api --query 'events[*].message' --output text > events.jsonl`
-
-## Fargate / S3
-
-If a bucket is allowed, use this sink instead of the CloudWatch one. It also brings `traffictape-spring-boot` with it.
-
-```xml
-<dependency>
-    <groupId>io.github.arun0009</groupId>
-    <artifactId>traffictape-sink-s3</artifactId>
-    <version>${traffictape.version}</version>
-</dependency>
-```
-
-Task role needs `s3:PutObject`. Do not point four tasks at one key: default `unique-per-instance` writes:
-
-```text
-s3://qa-traffic-tape/payments-api/2026-08-27/{hostname}/
-  README.md
-  metadata.json
-  statistics.json
-  gaps.json
-  fanout.json
-  events/events-000001.jsonl.gz
-```
-
-If both `s3.bucket` and `cloudwatch.log-group` are set, S3 wins. Sampling is still per JVM (`max-examples-per-scenario` × task count).
+A `@Bean CaptureSink` always wins over both of the above.
