@@ -14,7 +14,33 @@
 
 </div>
 
-A Spring Boot recorder and an offline CLI. Add it in **test scope**, run the suite you already have, generate WireMock stubs. Java 17+, Spring Boot 3.x. Capture is off until you turn it on, and it never fails the application request.
+A Spring Boot recorder and an offline CLI. Java 17+, Spring Boot 3.x. Capture is off until you turn it on, and it never fails the application request.
+
+## Why
+
+You test with a sample payload. A client sends a different body — `{owner}` instead of `{status}`, extra fields, another shape. You expect one path and one query. They send `?status=OPEN`, or `/orders/{id}/history`, a path you never handled.
+
+The suite stays green. That request still happens. Your tests never saw it.
+
+TrafficTape records that HTTP. Same route, different shape or status, is a *scenario* — a few examples of each, not a dump of every call. Outbound calls stay on the inbound request that caused them, so you also see fan-out you never stubbed.
+
+Put it in QA. Copy the tape. `generate` writes stubs and a test plan for the cases you missed. Then throw the recorder away.
+
+```text
+PATCH /assets/{id}
+  {status} → 200
+  {owner}  → 200
+
+GET  /orders?status=open
+GET  /orders?status=OPEN
+GET  /orders/{id}/history
+
+POST /orders
+  → GET  /inventory/{id}
+  → POST /ledger
+```
+
+Fastest loop: **test scope**, the suite you already have.
 
 ```xml
 <dependency>
@@ -40,24 +66,6 @@ java -jar traffictape-cli-${traffictape.version}-all.jar generate \
 ```
 
 Pin `${traffictape.version}` to the Maven Central badge. Grab the CLI `-all` jar from the [latest release](https://github.com/arun0009/traffictape/releases/latest). Test-scope loop in detail: [Capture from tests](docs/capture-from-tests.md).
-
-## Why
-
-Your tests cover the paths you remembered. Real traffic shows the rest: a `PATCH` that sometimes sends `{status}` and sometimes `{owner}`, a `404` a real client hits, two backend calls that belong to one request.
-
-TrafficTape groups those into *scenarios* (same route, different request shape or status) and keeps a few examples of each, not every request.
-
-```text
-PATCH /assets/{id}
-  {status} → 200
-  {owner}  → 200
-
-POST /orders
-  → GET  /inventory/{id}
-  → POST /ledger
-```
-
-First 10 examples per scenario (configurable). Counts continue after bodies stop.
 
 ## Capture in QA
 
