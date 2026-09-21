@@ -1,5 +1,6 @@
 package io.traffictape.spring;
 
+import io.traffictape.policy.CapturePolicy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
@@ -273,7 +274,7 @@ public class TrafficTapeProperties {
          * A request carrying this header is recorded even after its scenario's budget is spent, along
          * with its outbound calls. The value is written to correlation.onDemandTag. Blank disables.
          */
-        private String onDemandHeader = "X-TrafficTape-Record";
+        private String onDemandHeader = CapturePolicy.DEFAULT_ON_DEMAND_HEADER;
 
         public Include getInclude() {
             return include;

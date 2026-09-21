@@ -114,27 +114,22 @@ public final class CaptureEngine {
             metrics.recordObserved(observed.direction().name());
             metrics.recordFingerprints(statistics.uniqueEndpoints(), statistics.uniqueScenarios());
 
-            // On-demand exchanges bypass the sampler and never touch its budget.
             ExchangeContext ctx = observed.exchangeContext();
             String onDemandTag = ctx == null ? null : ctx.onDemandTag();
-            boolean onDemand = onDemandTag != null;
-            if (!onDemand && !sampler.shouldCapture(key)) {
+            Sampler gate = onDemandTag == null ? sampler : Sampler.UNBOUNDED;
+            if (!gate.shouldCapture(key)) {
                 return;
             }
             HttpTransaction tx = transactions.create(
                     observed, route, requestShape, responseCharacteristic, pair, onDemandTag);
             if (queue.offer(tx)) {
-                if (!onDemand) {
-                    sampler.recordCaptured(key);
-                }
+                gate.recordCaptured(key);
                 long bytes = bytesOf(tx);
                 statistics.recordCaptured(pair.scenario(), bytes);
                 metrics.recordExampleCaptured();
                 metrics.recordBytes(bytes);
             } else {
-                if (!onDemand) {
-                    sampler.release(key);
-                }
+                gate.release(key);
                 statistics.recordDropped();
                 metrics.recordDropped();
             }

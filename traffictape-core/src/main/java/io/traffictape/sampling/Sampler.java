@@ -7,6 +7,18 @@ package io.traffictape.sampling;
  */
 public interface Sampler {
 
+    /** Keeps every example and tracks nothing. Used for on-demand exchanges. */
+    Sampler UNBOUNDED = new Sampler() {
+        @Override
+        public boolean shouldCapture(ScenarioKey key) {
+            return true;
+        }
+
+        @Override
+        public void recordCaptured(ScenarioKey key) {
+        }
+    };
+
     boolean shouldCapture(ScenarioKey key);
 
     void recordCaptured(ScenarioKey key);

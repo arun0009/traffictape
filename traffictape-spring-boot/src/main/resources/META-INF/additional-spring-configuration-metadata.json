@@ -1,6 +1,11 @@
 {
   "properties": [
     {
+      "name": "traffictape.capture.on-demand-header",
+      "type": "java.lang.String",
+      "defaultValue": "X-TrafficTape-Record"
+    },
+    {
       "name": "traffictape.capture.include.methods",
       "type": "java.util.List<java.lang.String>",
       "defaultValue": ["GET", "POST", "PUT", "PATCH", "DELETE"]

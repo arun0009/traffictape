@@ -92,6 +92,15 @@ class ConfigurationMetadataTest {
         });
     }
 
+    /** A default that is a constant from another class is invisible to the processor too. */
+    @Test
+    void handWrittenScalarDefaultsMatchTheJavaDefaults() {
+        JsonNode onDemand = properties(handWritten).get("traffictape.capture.on-demand-header");
+        assertThat(onDemand).isNotNull();
+        assertThat(onDemand.path("defaultValue").asText())
+                .isEqualTo(new TrafficTapeProperties().getCapture().getOnDemandHeader());
+    }
+
     @Test
     void everyHintPointsAtAPropertyThatExists() {
         Set<String> known = new LinkedHashSet<>(properties(generated).keySet());

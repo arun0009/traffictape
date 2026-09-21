@@ -16,6 +16,8 @@ import java.util.TreeSet;
  */
 public final class CapturePolicy {
 
+    public static final String DEFAULT_ON_DEMAND_HEADER = "X-TrafficTape-Record";
+
     private final Set<String> includeMethods;
     private final List<String> excludeRoutes;
     private final List<String> excludeContentTypes;
@@ -51,7 +53,7 @@ public final class CapturePolicy {
                 .includeMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"))
                 .excludeRoutes(List.of("/health", "/actuator/**"))
                 .excludeContentTypes(List.of("multipart/form-data", "application/octet-stream"))
-                .onDemandHeader("X-TrafficTape-Record")
+                .onDemandHeader(DEFAULT_ON_DEMAND_HEADER)
                 .excludeHeaders(List.of(
                         "authorization", "cookie", "set-cookie", "proxy-authorization",
                         "x-api-key", "api-key"))
