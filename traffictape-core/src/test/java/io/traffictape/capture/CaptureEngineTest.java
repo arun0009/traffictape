@@ -3,11 +3,13 @@ package io.traffictape.capture;
 import io.traffictape.correlation.ExchangeContext;
 import io.traffictape.model.Direction;
 import io.traffictape.model.HttpTransaction;
+import io.traffictape.sampling.BoundedScenarioSampler;
 import io.traffictape.sampling.Sampler;
 import io.traffictape.sampling.ScenarioKey;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -164,6 +166,36 @@ class CaptureEngineTest {
         assertThat(fanout.get(0).patterns().get(0).hops())
                 .contains("GET /stock/{sku} 200 → inventory")
                 .contains("POST /entries 201 → ledger");
+    }
+
+    @Test
+    void onDemandRecordsAfterBudgetIsSpentWithoutTakingASlot() {
+        CaptureQueue queue = new CaptureQueue(10);
+        BoundedScenarioSampler sampler = new BoundedScenarioSampler(1);
+        CaptureEngine engine = CaptureEngine.builder().queue(queue).sampler(sampler).build();
+        engine.record(get("/accounts/1", 200));
+        engine.record(get("/accounts/2", 200));
+        assertThat(queue.size()).isEqualTo(1);
+
+        engine.record(inbound(ExchangeContext.open(Map.of(), "BUG-1234"), "GET", "/accounts/3", 200));
+
+        assertThat(queue.size()).isEqualTo(2);
+        assertThat(engine.statistics().captured()).isEqualTo(2);
+        HttpTransaction forced = queue.drain(2).get(1);
+        assertThat(forced.correlation().onDemandTag()).isEqualTo("BUG-1234");
+        assertThat(sampler.capturedCount(new ScenarioKey(forced.fingerprints().endpoint().id(), "none", "200")))
+                .isEqualTo(1);
+    }
+
+    @Test
+    void onDemandTagCoversOutboundCallsOnTheSameContext() {
+        CaptureQueue queue = new CaptureQueue(10);
+        CaptureEngine engine = CaptureEngine.builder().queue(queue).sampler(new BoundedScenarioSampler(0)).build();
+        ExchangeContext ctx = ExchangeContext.open(Map.of(), "BUG-7");
+        engine.record(outbound(ctx, 1, "inventory", "GET", "/stock/{sku}", 200));
+        engine.record(inbound(ctx, "POST", "/orders", 201));
+
+        assertThat(queue.drain(2)).extracting(tx -> tx.correlation().onDemandTag()).containsExactly("BUG-7", "BUG-7");
     }
 
     @Test

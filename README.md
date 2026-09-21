@@ -80,6 +80,8 @@ traffictape:
 
 Leave it on until `/actuator/traffictape` reports `ready: true`, copy the tape, remove the dependency. Expose the endpoint with `management.endpoints.web.exposure.include: [health, traffictape]`. Restart after changing `enabled`. [Configuration](docs/configuration.md).
 
+To record one request after its scenario is full, send `X-TrafficTape-Record: BUG-1234`. It and its outbound calls are kept and tagged `correlation.onDemandTag`. [On demand](docs/configuration.md#on-demand).
+
 **Where the tape goes**
 
 - **Files (default)** — gzip JSONL under `output.directory`. Copy the folder off the box.

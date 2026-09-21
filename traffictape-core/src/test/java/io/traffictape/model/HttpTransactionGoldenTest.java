@@ -21,5 +21,6 @@ class HttpTransactionGoldenTest {
                 JsonSupport.mapper().writeValueAsBytes(tx), HttpTransaction.class);
         assertThat(again.path()).isEqualTo("/widgets/123");
         assertThat(again.scenarioFingerprintId()).isEqualTo(tx.scenarioFingerprintId());
+        assertThat(again.correlation().onDemandTag()).isEqualTo("BUG-1234");
     }
 }

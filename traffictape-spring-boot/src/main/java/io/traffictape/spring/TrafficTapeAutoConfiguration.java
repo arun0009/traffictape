@@ -81,6 +81,7 @@ public class TrafficTapeAutoConfiguration {
                 .excludeContentTypes(capture.getExclude().getContentTypes())
                 .excludeDestinations(capture.getExclude().getDestinations())
                 .excludeRequestHeaders(capture.getExclude().getRequestHeaders())
+                .onDemandHeader(capture.getOnDemandHeader())
                 .excludeHeaders(redact ? redaction.getHeaders() : List.of())
                 .includeHeaders(capture.getInclude().getHeaders())
                 .excludeJsonFields(redact ? redaction.getJsonFields() : List.of())

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- On-demand recording. A request with `X-TrafficTape-Record: <tag>` is stored after its scenario's budget is spent, with its outbound calls. Tag lands in `correlation.onDemandTag`; the header is not stored. Header name: `traffictape.capture.on-demand-header`, blank disables.
+
 ## 0.6.0 — 2026-08-28
 
 ### Breaking

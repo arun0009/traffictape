@@ -10,12 +10,16 @@ public final class TapeReadme {
 
             Observed HTTP, not a spec and not generated tests.
 
-            - `statistics.json` — every scenario seen (counts continue after bodies stop). `captureReady` = no new scenario for `plateau-after`.
+            - `statistics.json` — every scenario seen; counts continue after bodies stop.
+              `captureReady` = no new scenario for `plateau-after`.
             - `gaps.json` — ranked; `bodiesComplete` = min(count, N) examples kept.
-            - `fanout.json` — typical outbound hops per inbound scenario (mocks).
+            - `fanout.json` — outbound hops per inbound scenario (mocks).
             - `events/*.jsonl.gz` — sampled request/response bodies.
 
-            One regression test per **scenario**, not per endpoint. Mocks = `fanout.json` or `parentExchangeId` + `sequence`. Parameterize ids, timestamps, tokens; do not snapshot secrets.
+            One test per **scenario**, not per endpoint. Mocks from `fanout.json`
+            or `parentExchangeId` + `sequence`. Parameterize ids, timestamps,
+            tokens; never snapshot secrets. `correlation.onDemandTag` marks a
+            request recorded deliberately (a bug reproduction) — test those first.
             """;
 
     private TapeReadme() {

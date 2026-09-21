@@ -16,18 +16,30 @@ public final class ExchangeContext {
     private final String traceId;
     private final String spanId;
     private final String correlationId;
+    private final String onDemandTag;
     private final AtomicInteger outboundSequence = new AtomicInteger();
 
     public ExchangeContext(String exchangeId, String traceId, String spanId, String correlationId) {
+        this(exchangeId, traceId, spanId, correlationId, null);
+    }
+
+    /** @param onDemandTag on-demand header value, or null. Outbound calls under this context inherit it. */
+    public ExchangeContext(String exchangeId, String traceId, String spanId, String correlationId, String onDemandTag) {
         this.exchangeId = exchangeId;
         this.traceId = traceId;
         this.spanId = spanId;
         this.correlationId = correlationId;
+        this.onDemandTag = onDemandTag;
     }
 
     public static ExchangeContext open(Map<String, String> headers) {
+        return open(headers, null);
+    }
+
+    public static ExchangeContext open(Map<String, String> headers, String onDemandTag) {
         ParsedTrace parsed = TraceHeaders.parse(headers);
-        return new ExchangeContext(UUID.randomUUID().toString(), parsed.traceId(), parsed.spanId(), parsed.correlationId());
+        return new ExchangeContext(
+                UUID.randomUUID().toString(), parsed.traceId(), parsed.spanId(), parsed.correlationId(), onDemandTag);
     }
 
     public String exchangeId() {
@@ -44,6 +56,11 @@ public final class ExchangeContext {
 
     public String correlationId() {
         return correlationId;
+    }
+
+    /** Null unless the inbound request carried the on-demand header. */
+    public String onDemandTag() {
+        return onDemandTag;
     }
 
     public int nextOutboundSequence() {

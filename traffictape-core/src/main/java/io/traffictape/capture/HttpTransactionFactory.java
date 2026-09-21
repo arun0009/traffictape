@@ -30,7 +30,8 @@ final class HttpTransactionFactory {
             String route,
             String requestShape,
             String responseCharacteristic,
-            FingerprintPair pair) {
+            FingerprintPair pair,
+            String onDemandTag) {
         BodyCapture requestBody = bodyCodec.decode(
                 observed.requestBody(),
                 observed.requestContentType(),
@@ -46,7 +47,7 @@ final class HttpTransactionFactory {
                 EventType.HTTP_TRANSACTION,
                 observed.direction(),
                 observed.timestamp(),
-                correlation(observed),
+                correlation(observed, onDemandTag),
                 observed.destination(),
                 observed.method() == null ? null : observed.method().toUpperCase(),
                 route,
@@ -65,17 +66,17 @@ final class HttpTransactionFactory {
         );
     }
 
-    private static Correlation correlation(ObservedExchange observed) {
+    private static Correlation correlation(ObservedExchange observed, String onDemandTag) {
         ExchangeContext ctx = observed.exchangeContext();
         String trace = ctx == null ? null : ctx.traceId();
         String span = ctx == null ? null : ctx.spanId();
         String corr = ctx == null ? null : ctx.correlationId();
         if (observed.direction() == Direction.OUTBOUND) {
             String parent = ctx == null ? null : ctx.exchangeId();
-            return Correlation.outbound(parent, observed.outboundSequence(), trace, span, corr);
+            return Correlation.outbound(parent, observed.outboundSequence(), trace, span, corr, onDemandTag);
         }
         String id = ctx == null ? null : ctx.exchangeId();
         Integer hops = ctx == null ? null : ctx.outboundCount();
-        return Correlation.inbound(id, hops, trace, span, corr);
+        return Correlation.inbound(id, hops, trace, span, corr, onDemandTag);
     }
 }

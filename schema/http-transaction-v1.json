@@ -17,7 +17,22 @@
     "requestShape": { "type": "string" },
     "responseCharacteristic": { "type": "string" },
     "latencyMs": { "type": "integer" },
-    "correlation": { "type": "object" },
+    "correlation": {
+      "type": "object",
+      "properties": {
+        "exchangeId": { "type": "string" },
+        "parentExchangeId": { "type": "string" },
+        "sequence": { "type": "integer" },
+        "outboundCount": { "type": "integer" },
+        "traceId": { "type": "string" },
+        "spanId": { "type": "string" },
+        "correlationId": { "type": "string" },
+        "onDemandTag": {
+          "type": "string",
+          "description": "Value of the on-demand header (default X-TrafficTape-Record) when the exchange was recorded on demand. Outbound calls of that request carry the same value."
+        }
+      }
+    },
     "fingerprints": { "type": "object" },
     "request": { "type": "object" },
     "response": { "type": "object" }

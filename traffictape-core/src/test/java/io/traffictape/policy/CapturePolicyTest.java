@@ -21,6 +21,12 @@ class CapturePolicyTest {
     }
 
     @Test
+    void blankOnDemandHeaderDisablesTheFeature() {
+        assertThat(policy.onDemandHeader()).isEqualTo("X-TrafficTape-Record");
+        assertThat(CapturePolicy.builder().onDemandHeader(" ").build().onDemandHeader()).isNull();
+    }
+
+    @Test
     void includesOnlyConfiguredMethods() {
         assertThat(policy.acceptsMethod("GET")).isTrue();
         assertThat(policy.acceptsMethod("POST")).isTrue();

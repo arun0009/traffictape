@@ -269,6 +269,12 @@ public class TrafficTapeProperties {
          */
         private boolean textBodies = true;
 
+        /**
+         * A request carrying this header is recorded even after its scenario's budget is spent, along
+         * with its outbound calls. The value is written to correlation.onDemandTag. Blank disables.
+         */
+        private String onDemandHeader = "X-TrafficTape-Record";
+
         public Include getInclude() {
             return include;
         }
@@ -283,6 +289,14 @@ public class TrafficTapeProperties {
 
         public void setTextBodies(boolean textBodies) {
             this.textBodies = textBodies;
+        }
+
+        public String getOnDemandHeader() {
+            return onDemandHeader;
+        }
+
+        public void setOnDemandHeader(String onDemandHeader) {
+            this.onDemandHeader = onDemandHeader;
         }
     }
 

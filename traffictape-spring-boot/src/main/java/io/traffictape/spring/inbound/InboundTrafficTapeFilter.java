@@ -28,6 +28,8 @@ import java.util.Map;
 public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
 
     private static final UrlPathHelper PATHS = new UrlPathHelper();
+    /** Tag recorded when the on-demand header is sent with no value. */
+    private static final String PRESENT = "true";
     private final CaptureEngine engine;
     private final TrafficTapeProperties properties;
 
@@ -61,7 +63,7 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
         HttpServletResponse res = response;
         long start = System.nanoTime();
         try {
-            ctx = ExchangeContext.open(firstHeaders(request));
+            ctx = ExchangeContext.open(firstHeaders(request), onDemandTag(request));
             CaptureContexts.set(ctx);
             request.setAttribute(CaptureContexts.REQUEST_ATTRIBUTE, ctx);
             if (shouldWrapRequest(request)) {
@@ -110,7 +112,7 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
                 .path(path)
                 .route(route)
                 .query(ObservedExchange.parseQuery(original.getQueryString()))
-                .requestHeaders(headers(original))
+                .requestHeaders(recordedRequestHeaders(original))
                 .responseHeaders(responseHeaders(usedResponse))
                 .requestContentType(original.getContentType())
                 .responseContentType(usedResponse.getContentType())
@@ -141,6 +143,26 @@ public final class InboundTrafficTapeFilter extends OncePerRequestFilter {
         }
         Object mvc = request.getAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingPattern");
         return mvc == null ? null : mvc.toString();
+    }
+
+    /** Header value, {@link #PRESENT} if it has none, null if absent or the feature is off. */
+    private String onDemandTag(HttpServletRequest request) {
+        String header = engine.policy().onDemandHeader();
+        String value = header == null ? null : request.getHeader(header);
+        if (value == null) {
+            return null;
+        }
+        return value.isBlank() ? PRESENT : value.trim();
+    }
+
+    /** The on-demand header is an instruction to the recorder, not part of the request being recorded. */
+    private Map<String, List<String>> recordedRequestHeaders(HttpServletRequest request) {
+        Map<String, List<String>> headers = headers(request);
+        String onDemand = engine.policy().onDemandHeader();
+        if (onDemand != null) {
+            headers.keySet().removeIf(name -> name.equalsIgnoreCase(onDemand));
+        }
+        return headers;
     }
 
     private boolean isExcludedTraffic(HttpServletRequest request) {

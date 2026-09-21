@@ -25,6 +25,7 @@ public final class CapturePolicy {
     private final Set<String> excludeJsonFields;
     private final Set<String> includeJsonFields;
     private final Map<String, List<String>> excludeRequestHeaders;
+    private final String onDemandHeader;
 
     private CapturePolicy(Builder builder) {
         this.includeMethods = upper(builder.includeMethods);
@@ -36,6 +37,9 @@ public final class CapturePolicy {
         this.excludeJsonFields = lowerSet(builder.excludeJsonFields);
         this.includeJsonFields = lowerSet(builder.includeJsonFields);
         this.excludeRequestHeaders = lowerKeys(builder.excludeRequestHeaders);
+        this.onDemandHeader = builder.onDemandHeader == null || builder.onDemandHeader.isBlank()
+                ? null
+                : builder.onDemandHeader.trim();
     }
 
     public static Builder builder() {
@@ -47,6 +51,7 @@ public final class CapturePolicy {
                 .includeMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"))
                 .excludeRoutes(List.of("/health", "/actuator/**"))
                 .excludeContentTypes(List.of("multipart/form-data", "application/octet-stream"))
+                .onDemandHeader("X-TrafficTape-Record")
                 .excludeHeaders(List.of(
                         "authorization", "cookie", "set-cookie", "proxy-authorization",
                         "x-api-key", "api-key"))
@@ -108,6 +113,11 @@ public final class CapturePolicy {
 
     public Map<String, List<String>> excludeRequestHeaders() {
         return excludeRequestHeaders;
+    }
+
+    /** Header whose presence records the exchange regardless of the sampler budget; null when disabled. */
+    public String onDemandHeader() {
+        return onDemandHeader;
     }
 
     public boolean acceptsMethod(String method) {
@@ -260,6 +270,7 @@ public final class CapturePolicy {
         private Collection<String> excludeJsonFields = List.of();
         private Collection<String> includeJsonFields = List.of();
         private Map<String, ? extends Collection<String>> excludeRequestHeaders = Map.of();
+        private String onDemandHeader;
 
         public Builder includeMethods(Collection<String> v) {
             this.includeMethods = v;
@@ -303,6 +314,12 @@ public final class CapturePolicy {
 
         public Builder excludeRequestHeaders(Map<String, ? extends Collection<String>> v) {
             this.excludeRequestHeaders = v == null ? Map.of() : v;
+            return this;
+        }
+
+        /** Null or blank disables on-demand recording. */
+        public Builder onDemandHeader(String v) {
+            this.onDemandHeader = v;
             return this;
         }
 

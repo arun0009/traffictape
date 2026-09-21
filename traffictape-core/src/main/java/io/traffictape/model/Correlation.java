@@ -13,6 +13,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  *     OUTBOUND sequence=2 POST /ledger
  *     inbound response 201
  * </pre>
+ *
+ * <p>{@code onDemandTag} is set only when the exchange was forced by the on-demand header; it
+ * holds that header's value.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record Correlation(
@@ -22,15 +25,18 @@ public record Correlation(
         Integer outboundCount,
         String traceId,
         String spanId,
-        String correlationId
+        String correlationId,
+        String onDemandTag
 ) {
     public static Correlation inbound(
-            String exchangeId, Integer outboundCount, String traceId, String spanId, String correlationId) {
-        return new Correlation(exchangeId, null, null, outboundCount, traceId, spanId, correlationId);
+            String exchangeId, Integer outboundCount, String traceId, String spanId, String correlationId,
+            String onDemandTag) {
+        return new Correlation(exchangeId, null, null, outboundCount, traceId, spanId, correlationId, onDemandTag);
     }
 
     public static Correlation outbound(
-            String parentExchangeId, Integer sequence, String traceId, String spanId, String correlationId) {
-        return new Correlation(null, parentExchangeId, sequence, null, traceId, spanId, correlationId);
+            String parentExchangeId, Integer sequence, String traceId, String spanId, String correlationId,
+            String onDemandTag) {
+        return new Correlation(null, parentExchangeId, sequence, null, traceId, spanId, correlationId, onDemandTag);
     }
 }
